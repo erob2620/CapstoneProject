@@ -1,0 +1,11 @@
+{
+  "name": "capstone",
+  "description": "\"multi user wireframe\"",
+  "main": "",
+  "authors": [
+    "emerson roberts"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "private": true
+}
