@@ -4,5 +4,5 @@ block main-content
     section.content
         div(ng-view)
         canvas(id='c' width="1000px" height="1000px") canvas not supported
-        button(id='deleteButton' onclick='deleteShape()') Delete
+        input(type='button' id='delete' value='Delete' onclick='deleteShape()')
         script(type='text/javascript' src='/app/shape.js')

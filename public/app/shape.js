@@ -1,7 +1,7 @@
 var MyApp = {};
 function setUpFabric() {
     MyApp.canvas = new fabric.Canvas('c');
-    
+    MyApp.keepSquare = false;
     var line, isDown, startPosition={}, rect, drawingMode = true;
     MyApp.canvas.selection = false;
     MyApp.canvas.on('mouse:down', function(event) {
@@ -26,10 +26,16 @@ function setUpFabric() {
     });
     
     MyApp.canvas.on('mouse:move', function(event) {
+        var deltaX, deltaY;
         if(!isDown || !drawingMode) return;
-        var deltaX = event.e.offsetX - startPosition.x;
-        var deltaY = event.e.offsetY - startPosition.y;
-        console.log(deltaX + '  ' + deltaY);
+        if(MyApp.keepSquare) {
+            deltaX = event.e.offsetX - startPosition.x;
+            deltaY = deltaX;
+        } else {
+            deltaX = event.e.offsetX - startPosition.x;
+            deltaY = event.e.offsetY - startPosition.y;
+        }
+       
         rect.setWidth(deltaX);
         rect.setHeight(deltaY);
         
@@ -38,8 +44,16 @@ function setUpFabric() {
     
     MyApp.canvas.on('mouse:up', function(event) {
         isDown = false;
-        MyApp.canvas.add(rect);
-//        MyApp.canvas.setActiveObject(rect);
+        console.log(rect.getHeight());
+        if(drawingMode) {
+            if(event.e.offsetY - startPosition.y < 0) {
+                rect.top = event.e.offsetY;
+                rect.setHeight(rect.getHeight() * -1);
+            }
+            MyApp.canvas.add(rect);
+            MyApp.canvas.setActiveObject(rect);
+        } 
+        console.log(MyApp.canvas);
     });
     
     MyApp.canvas.on('object:selected', function() {
@@ -62,8 +76,14 @@ function setUpFabric() {
 };
 window.deleteShape = function() {
     console.log('deleting shape');
-    MyApp.canvas.getActiveObject().remove();
+    var shape = MyApp.canvas.getActiveObject();
+    MyApp.canvas.remove(shape);
+    MyApp.canvas.remove(shape);
+    
+//    MyApp.canvas.clear();
+    MyApp.canvas.renderAll();
 }
+
 function onKeyDownHandler(e) {
     switch (e.keyCode) {
         case 46:
@@ -71,10 +91,24 @@ function onKeyDownHandler(e) {
                 console.log('trying to delete');
                 var shape = MyApp.canvas.getActiveObject();
                 MyApp.canvas.remove(shape);
+                MyApp.canvas.remove(shape);
                 MyApp.canvas.renderAll();
                 return;
             }
+            break;
+        case 16:
+            MyApp.keepSquare = true;
+            break;
+    }
+}
+function onKeyUpHandler(e) {
+    switch( e.keyCode) {
+        case 16: 
+            console.log('shift released');
+            MyApp.keepSquare = false;
+            break;
     }
 }
 window.onkeydown = onKeyDownHandler;
+window.onkeyup = onKeyUpHandler;
 window.onload = setUpFabric;

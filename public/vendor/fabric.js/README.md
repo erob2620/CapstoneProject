@@ -14,7 +14,7 @@
 
 [![Bower version](https://badge.fury.io/bo/fabric.svg)](http://badge.fury.io/bo/fabric)
 [![NPM version](https://badge.fury.io/js/fabric.svg)](http://badge.fury.io/js/fabric)
-[![Downloads per month](https://img.shields.io/npm/dm/fabric.svg)](https://www.npmjs.org/package/fabric)
+[![Downloads per month](https://img.shields.io/npm/dm/localeval.svg)](https://www.npmjs.org/package/fabric)
 
 <!-- deps status -->
 
@@ -33,11 +33,6 @@
 
 Using Fabric.js, you can create and populate objects on canvas; objects like simple geometrical shapes — rectangles, circles, ellipses, polygons, or more complex shapes consisting of hundreds or thousands of simple paths. You can then scale, move, and rotate these objects with the mouse; modify their properties — color, transparency, z-index, etc. You can also manipulate these objects altogether — grouping them with a simple mouse selection.
 
-### Non-Technical Introduction to Fabric
-
-Fabric.js allows you to easily create simple shapes like rectangles, circles, triangles and other polygons or more complex shapes made up of many paths, onto the HTML `<canvas>` element on a webpage using JavaScript.  Fabric.js will then allow you to manipulate the size, position and rotation of these objects with a mouse.  It’s also possible to change some of the attributes of these objects such as their color, transparency, depth position on the webpage or selecting groups of these objects using the Fabric.js library. Fabric.js will also allow you to convert an SVG image into JavaScript data that can be used for putting it onto the `<canvas>` element.
-
-
 [Contributions](https://github.com/kangax/fabric.js/wiki/Love-Fabric%3F-Help-us-by...) are very much welcome!
 
 ### Goals
@@ -49,16 +44,15 @@ Fabric.js allows you to easily create simple shapes like rectangles, circles, tr
 - Encapsulated in one object
 - No browser sniffing for critical functionality
 - Runs under ES5 strict mode
-- Runs on a server under [Node.js](http://nodejs.org/) (0.8, 0.10, 0.11, 0.12) (see [Node.js limitations](https://github.com/kangax/fabric.js/wiki/Fabric-limitations-in-node.js))
-- Follows [Semantic Versioning](http://semver.org/)
+- Runs on a server under [Node.js](http://nodejs.org/) (0.6, 0.8, 0.10) (see [Node.js limitations](https://github.com/kangax/fabric.js/wiki/Fabric-limitations-in-node.js))
 
 ### Supported browsers
 
 - Firefox 2+
 - Safari 3+
 - Opera 9.64+
-- Chrome (all versions)
-- IE9, IE10, IE11, Edge
+- Chrome (all versions should work)
+- IE9, IE10, IE11
 
 #### With help of [Explorer Canvas](http://code.google.com/p/explorercanvas/)
 
@@ -86,10 +80,6 @@ Fabric.js started as a foundation for design editor on [printio.ru](http://print
 
     $ bower install fabric
 
-<h3 id="npm-install">Install with npm</h3>
-To install Fabric.js using npm, you must first manually [install Cairo](http://cairographics.org/download/) on your system. Cairo is a system library which powers node-canvas, which Fabric.js relies on. When the installation is complete, you may need to restart your terminal or command prompt before installing fabric.
-
-    $ npm install fabric --save
 
 <h3 id="fabric-building">Building</h3>
 
@@ -251,7 +241,7 @@ Follow [@fabric.js](http://twitter.com/fabricjs) or [@kangax](http://twitter.com
 
 Questions, suggestions — [fabric.js on Google Groups](http://groups.google.com/group/fabricjs).
 
-See [Fabric questions on Stackoverflow](http://stackoverflow.com/questions/tagged/fabricjs),
+See [Fabric questions on Stackoverflow](stackoverflow.com/questions/tagged/fabricjs),
 Fabric snippets on [jsfiddle](http://jsfiddle.net/user/fabricjs/fiddles/)
 or [codepen.io](http://codepen.io/tag/fabricjs).
 
@@ -261,11 +251,11 @@ Get help in Fabric's IRC channel — irc://irc.freenode.net/#fabric.js
 
 ### Credits
 
-- Ernest Delgado for the original idea of [manipulating images on canvas](http://www.ernestdelgado.com/archive/canvas/)
-- [Maxim "hakunin" Chernyak](http://twitter.com/hakunin) for ideas, and help with various parts of the library throughout its life
-- [Sergey Nisnevich](http://nisnya.com) for help with geometry logic
+- Ernest Delgado for the original idea of [manipulating images on canvas](http://www.ernestdelgado.com/archive/canvas/).
+- [Maxim "hakunin" Chernyak](http://twitter.com/hakunin) for ideas, and help with various parts of the library throughout its life.
+- [Sergey Nisnevich](http://nisnya.com) for help with geometry logic.
 - [Stefan Kienzle](https://twitter.com/kienzle_s) for help with bugs, features, documentation, github issues
-- [And all the other GitHub contributors](https://github.com/kangax/fabric.js/graphs/contributors)
+- Github contributors: @Kingsquare, @cleercode, @jarek-itmore, @sunrei, @khronnuz, @ollym, @garg, @sjpemberton09, @willmcneilly, @davidjrice, @coulix, and [more](https://github.com/kangax/fabric.js/graphs/contributors)
 
 ### MIT License
 
