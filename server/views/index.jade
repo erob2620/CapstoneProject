@@ -4,19 +4,3 @@ block main-content
     section.content
         div(ng-view)
         a(ng-href='/') home
-        if( typeof(designs) !== 'undefined') 
-            h3 you have designs 
-            each val in designs
-                a(ng-href='/design/#{val._id}') !{val.title}
-                br
-        else 
-            h3 no designs
-        input(type='button' id='save' value='Save design' onclick='saveCanvas()')
-        input(type='button' id='delete' value='Delete' onclick='deleteShape()')
-        input(type='button' id='rect' value='Rectangle' onclick='changeShapeToRect()')
-        input(type='button' id='ellipse' value='Ellipse' onclick='changeShapeToEllipse()')
-        input(type='button' id='triangle' value='Triangle' onclick='changeShapeToTriangle()')
-        canvas(id='c' width="800px" height="800px") canvas not supported
-        script.
-            canvasDesign=!{design};
-        script(type='text/javascript' src='/app/shape.js')

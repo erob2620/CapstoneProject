@@ -1,16 +1,30 @@
 var express = require('express');
 var router = express.Router();
 var Design = require('../models/design.js');
-router.get('/', function(req,res) {
-    var userDesigns;
-    console.log('from index route');
-    Design.find({ owner: 'erob2620'}, function(err, designs) {
-        if(err) throw err;
-        
-        res.render('index', {designs: designs, design: 1}); 
+var jwt = require('express-jwt');
 
-    });
-    
+var auth = jwt({
+    secret: 'Temp_Secret',
+    userProperty: 'payload'
 });
 
+var ctrlProfile = require('../controllers/profile');
+var ctrlAuth = require('../controllers/authentication');
+var ctrlDesigns = require('../controllers/designs');
+router.get('/profile', auth, ctrlProfile.profileRead);
+router.get('/designs', auth, ctrlDesigns.designsRead);
+router.post('/register', ctrlAuth.register);
+router.post('/login', ctrlAuth.login);
+
+//router.get('/', function(req,res) {
+//    var userDesigns;
+//    console.log('from index route');
+//    Design.find({ owner: 'erob2620'}, function(err, designs) {
+//        if(err) throw err;
+//        
+//        res.render('index', {designs: designs, design: 1}); 
+//
+//    });
+//    
+//});
 module.exports = router;

@@ -8,7 +8,7 @@ router.post('/', function(req, res) {
     console.log(req.body.id);
     console.log(req.body.json);
     if(req.body.id === undefined) {
-        var design = new Design({title: 'test', owner: 'erob2620', design: req.body.json});
+        var design = new Design({title: 'test', owner: , design: req.body.json});
         design.save(function(err) {
             if(err) throw err;
             

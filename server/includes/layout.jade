@@ -1,8 +1,8 @@
 doctype html
-html
+html(ng-app='app')
     head
         base(href="/")
         link(rel="stylesheet", href="/css/main.css")
-    body(ng-app='app')
+    body(ng-view)
         block main-content
         include scripts

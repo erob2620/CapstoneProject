@@ -7,4 +7,4 @@ var designSchema = new Schema({
     design: String
 });
 
-module.exports = mongoose.model('Design', designSchema);
+mongoose.model('Design', designSchema);
