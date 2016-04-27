@@ -1,5 +1,5 @@
 (function() {
-    angular.module('app', ['ngRoute','common.fabric','common.fabric.utilities','common.fabric.constants']);
+    angular.module('app', ['ngRoute']);
     
     function config($routeProvider, $locationProvider) {
         $routeProvider

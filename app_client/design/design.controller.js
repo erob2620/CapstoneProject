@@ -3,176 +3,190 @@
         .module('app')
         .controller('designCtrl', designCtrl); 
     
-    designCtrl.$inject = ['$location','$scope', 'Fabric', 'FabricConstants', 'Keypress'];
+    designCtrl.$inject = ['$location','$scope', 'DrawingService'];
     
-    function designCtrl($location, $scope, Fabric, FabricConstants, Keypress) {
+    function designCtrl($location, $scope, DrawingService) {
         var vm = this;
         vm.shapeType = 'rect';
         vm.drawingMode = true;
         vm.isDown = false;
         vm.startPosition = {};
-        $scope.fabric = {};
-        $scope.FabricConstants = FabricConstants;
-        
+//        $scope.FabricConstants = FabricConstants;
+        vm.canvas;
         vm.init = function() {
             console.log('initializing fabric');
-            $scope.fabric = new Fabric({
-                JSONExportProperties: FabricConstants.JSONExportProperties,
-                textDefaults: FabricConstants.textDefaults,
-                shapeDefaults: FabricConstants.shapeDefaults
-//                json: $scope.main.selectedPage.json
+            vm.canvas = new fabric.Canvas('c');
+            console.log(vm.canvas);
+            vm.canvas.selection = false;
+            vm.setUpCanvas();
+        };
+        document.addEventListener('keydown', function(event) {
+            console.log('in key down');
+            switch (event.keyCode) {
+                case 46:
+                    if(vm.canvas.getActiveObject()) {
+                        console.log('trying to delete');
+                        var shapeToRemove = vm.canvas.getActiveObject();
+                        vm.canvas.remove(shapeToRemove);
+                        vm.canvas.remove(shapeToRemove);
+                        vm.canvas.renderAll();
+                        return;
+                    }
+                    break;
+                case 16:
+                    vm.keepSquare = true;
+                    break;
+            }
+        });
+        vm.setUpCanvas = function() {
+            vm.canvas.on('mouse:down', function(event) {
+                console.log(event);
+                if(!vm.drawingMode) return;
+                vm.isDown = true;
+                vm.startPosition.x = event.e.offsetX - 5;
+                vm.startPosition.y = event.e.offsetY - 5;
+                vm.shape = DrawingService.createShape({
+                    shapeType: vm.shapeType,
+                    startPosition: vm.startPosition
+                });
+                console.log(vm.shape);
+                vm.canvas.add(vm.shape);
             });
-            $scope.fabric.setCanvasSize(800,800);
-            $scope.fabric.selection = false;
-        };
-        vm.draw = function(event) {
-            console.log('in draw');
-            if(!vm.drawingMode) return;
-            vm.isDown = true;
-            vm.startPosition.x = event.e.offsetX - 5;
-            vm.startPosition.y = event.e.offsetY - 5;
-            vm.shape;
-            console.log(vm.shapeType);
-            switch(vm.shapeType) {
-                case 'rect':
-                    vm.shape = new fabric.Rect({
-                        left: $scope.startPosition.x,
-                        top: $scope.startPosition.y,
-                        width:0,
-                        height:0,
-                        stroke:'black',
-                        strokeWidth:1,
-                        fill:'transparent'
-                    });
-                    break;
-                case 'ellipse':
-                    vm.shape = new fabric.Ellipse({
-                        left: $scope.startPosition.x,
-                        top: $scope.startPosition.y,
-                        originX: 'left',
-                        originY: 'top',
-                        rx: 0,
-                        ry: 0,
-                        fill: 'transparent',
-                        stroke: 'black',
-                        strokeWidth: 1
-                    });
-                    break;
-                case 'triangle':
-                    vm.shape = new fabric.Triangle({
-                        left: $scope.startPosition.x,
-                        top: $scope.startPosition.y,
-                        width:0,
-                        height:0,
-                        fill: 'transparent',
-                        stroke: 'black',
-                        strokeWidth: 1,
-                    });
-                    break;
-                case 'polygon':
-                    var points = starPolygonPoints(5, 0, 0);
-                    shape = new fabric.Polygon(points, {
-                        stroke: 'black',
-                        left: startPosition.x - 10,
-                        top: startPosition.y - 10,
-                        originX: 'left',
-                        originY: 'top',
-                        fill: 'transparent',
-                        strokeWidth: 1,
-                        strokeLineJoin: 'bevil',
-                        centeredScaling: true
-                    }, true);
-            }
-            $scope.fabric.addShape(vm.shape);
-        };
-        vm.drawShape = function(event) {
-            var deltaX, deltaY;
-            if(!$scope.isDown || !$scope.drawingMode) return;
-            switch($scope.shapeType) {
-                case 'rect':
-                    if($scope.keepSquare) {
-                        deltaX = event.e.offsetX - $scope.startPosition.x;
-                        deltaY = deltaX;
-                    } else {
-                        deltaX = event.e.offsetX - $scope.startPosition.x;
-                        deltaY = event.e.offsetY - $scope.startPosition.y;
-                    }
+            vm.canvas.on('mouse:move', function(event) {
+                var deltaX, deltaY;
+                if(!vm.isDown || !vm.drawingMode) return;
+                switch(vm.shapeType) {
+                    case 'rect':
+                        if(vm.keepSquare) {
+                            deltaX = event.e.offsetX - vm.startPosition.x;
+                            deltaY = deltaX;
+                        } else {
+                            deltaX = event.e.offsetX - vm.startPosition.x;
+                            deltaY = event.e.offsetY - vm.startPosition.y;
+                        }
 
-                    $scope.shape.setWidth(deltaX);
-                    $scope.shape.setHeight(deltaY);
-                    $scope.shape.setCoords();
-                    break;
-                case 'ellipse':
-                    var rx = Math.abs($scope.startPosition.x - event.e.offsetX) / 2;
-                    var ry = Math.abs($scope.startPosition.y - event.e.offsetY) / 2;
-                    if( rx > $scope.shape.strokeWidth) {
-                        rx -= $scope.shape.strokeWidth / 2;
-                    }                
-                    if( ry > $scope.shape.strokeWidth) {
-                        ry -= $scope.shape.strokeWidth / 2;
-                    }
-                    $scope.shape.set({rx: rx, ry: ry});
+                        vm.shape.setWidth(deltaX);
+                        vm.shape.setHeight(deltaY);
+                        vm.shape.setCoords();
+                        break;
+                    case 'ellipse':
+                        var rx = Math.abs(vm.startPosition.x - event.e.offsetX) / 2;
+                        var ry = Math.abs(vm.startPosition.y - event.e.offsetY) / 2;
+                        if( rx > vm.shape.strokeWidth) {
+                            rx -= vm.shape.strokeWidth / 2;
+                        }                
+                        if( ry > vm.shape.strokeWidth) {
+                            ry -= vm.shape.strokeWidth / 2;
+                        }
+                        vm.shape.set({rx: rx, ry: ry});
 
-                    if($scope.startPosition.x > event.e.offsetX) {
-                        $scope.shape.set({originX: 'right'});
-                    } else {
-                        $scope.shape.set({originX: 'left'});
-                    }
-                    if($scope.startPosition.y > event.e.offsetY) {
-                        $scope.shape.set({originY: 'bottom'});
-                    } else {
-                        $scope.shape.set({originY: 'top'});
-                    }
-                    $scope.shape.setCoords();
-                    break;
-                case 'triangle':
-                    deltaX = event.e.offsetX - $scope.startPosition.x;
-                    deltaY = event.e.offsetY - $scope.startPosition.y;
-                    $scope.shape.setWidth(deltaX);
-                    $scope.shape.setHeight(deltaY);
-                    $scope.shape.setCoords();
-                    break;
-                case 'polygon':
-                    var centerX = $scope.shape.getCenterPoint().x;
-                    console.log($scope.shape.getCenterPoint());
-                    var radius = (event.e.offsetX - $scope.startPosition.x) / 2;
-                    var points = starPolygonPoints($scope.shape.get('points').length / 2, radius, radius / 2);
-                    var boundingBox = $scope.shape.getBoundingBox();
-                    $scope.shape.set({points: points, width: boundingBox.width, height: boundingBox.height});
-                    $scope.shape.setCoords();
-    //                shape.set({left: boundingBox.topLeft, top})
-                    break;
-            }
-            $scope.fabric.renderAll();
-        };
-        vm.addDrawing = function(event) {
-            $scope.isDown = false;
-
-            if($scope.drawingMode) {
-                if($scope.shapeType === 'rect') {
-                    if(event.e.offsetY - $scope.startPosition.y < 0) {
-                        console.log('change spinner');
-                        $scope.shape.top = event.e.offsetY;
-                        $scope.shape.setHeight($scope.shape.getHeight() * -1);
-                        $scope.shape.setCoords();
-                    }
-                } else if($scope.shapeType === 'triangle') {
-                    if(event.e.offsetY - $scope.startPosition.y < 0) {
-                        $scope.shape.top = event.e.offsetY;
-                        $scope.shape.setHeight($scope.shape.getHeight() * -1);
-                        $scope.shape.rotate(180);
-                        $scope.shape.setCoords();
-                    }
+                        if(vm.startPosition.x > event.e.offsetX) {
+                            vm.shape.set({originX: 'right'});
+                        } else {
+                            vm.shape.set({originX: 'left'});
+                        }
+                        if(vm.startPosition.y > event.e.offsetY) {
+                            vm.shape.set({originY: 'bottom'});
+                        } else {
+                            vm.shape.set({originY: 'top'});
+                        }
+                        vm.shape.setCoords();
+                        break;
+                    case 'triangle':
+                        deltaX = event.e.offsetX - vm.startPosition.x;
+                        deltaY = event.e.offsetY - vm.startPosition.y;
+                        vm.shape.setWidth(deltaX);
+                        vm.shape.setHeight(deltaY);
+                        vm.shape.setCoords();
+                        break;
+                    case 'polygon':
+                        var centerX = vm.shape.getCenterPoint().x;
+                        console.log(vm.shape.getCenterPoint());
+                        var radius = (event.e.offsetX - vm.startPosition.x) / 2;
+                        var points = starPolygonPoints(vm.shape.get('points').length / 2, radius, radius / 2);
+                        var boundingBox = vm.shape.getBoundingBox();
+                        vm.shape.set({points: points, width: boundingBox.width, height: boundingBox.height});
+                        vm.shape.setCoords();
+                        break;
                 }
-    //            MyApp.canvas.add(shape);
-                $scope.fabric.setActiveObject($scope.shape);
-    //            MyApp.canvas.off('mouse:move');
+                vm.canvas.renderAll();
+            });
+            vm.canvas.on('mouse:up', function(event) {
+                vm.isDown = false;
 
-            } 
+                if(vm.drawingMode) {
+                    if(vm.shapeType === 'rect') {
+                        if(event.e.offsetY - vm.startPosition.y < 0) {
+                            console.log('change spinner');
+                            vm.shape.top = event.e.offsetY;
+                            vm.shape.setHeight(vm.shape.getHeight() * -1);
+                            vm.shape.setCoords();
+                        }
+                    } else if(vm.shapeType === 'triangle') {
+                        if(vm.offsetY - vm.startPosition.y < 0) {
+                            vm.shape.top = event.e.offsetY;
+                            vm.shape.setHeight(vm.shape.getHeight() * -1);
+                            vm.shape.rotate(180);
+                            vm.shape.setCoords();
+                        }
+                    }
+                    vm.canvas.setActiveObject(vm.shape);
+                } 
+            });
+            vm.canvas.on('object:selected', function() {
+                vm.drawingMode = false;
+                var shape = vm.canvas.getActiveObject();
+                vm.shapeType = shape.type;
+                console.log(vm.shapeType);
+            });
+            vm.canvas.on('selection:cleared', function() {
+                vm.drawingMode = true;
+            });
+    
+            vm.canvas.observe('object:modified', function(e) {
+                e.target.resizeToScale();
+            });
+            
+            fabric.Object.prototype.resizeToScale = function() {
+                switch(this.type) {
+                    case 'rect':
+                        this.width *= this.scaleX;
+                        this.height *= this.scaleY;
+                        this.scaleX = 1;
+                        this.scaleY = 1; 
+                        break;
+                    case 'ellipse':
+                        this.rx *= this.scaleX;
+                        this.ry *= this.scaleY;
+                        this.width = this.rx * 2;
+                        this.height = this.ry * 2;
+                        this.scaleX = 1;
+                        this.scaleY = 1;
+                        break;
+                    case 'triangle':
+                        this.width *= this.scaleX;
+                        this.height *= this.scaleY;
+                        this.scaleX = 1;
+                        this.scaleY = 1;
+                        break;
+                    case 'polyline':
+                    case 'polygon':
+                        var points = this.get('points');
+                        for (var i = 0; i < points.length; i++) {
+                            var p = points[i];
+                            p.x *= this.scaleX;
+                            p.y *= this.scaleY;
+                        }
+                        this.scaleX = 1;
+                        this.scaleY = 1;
+                        this.width = this.getBoundingBox().width;
+                        this.height = this.getBoundingBox().height;
+                        break;
+                }
+
+            }
         }
-//        $scope.$on('mouse:down', vm.draw(event));
-//        $scope.$on('mouse:move', vm.drawShape(event));
-//        $scope.$on('mouse:up', vm.addDrawing(event));
-        $scope.$on('canvas:created', vm.init);
+
+        vm.init();
     }
 })();
