@@ -12,7 +12,8 @@ var ctrlProfile = require('../controllers/profile');
 var ctrlAuth = require('../controllers/authentication');
 var ctrlDesigns = require('../controllers/designs');
 router.get('/profile', auth, ctrlProfile.profileRead);
-router.get('/designs', auth, ctrlDesigns.designsRead);
+router.get('/designs', ctrlDesigns.designsRead);
+router.post('/designs/save', ctrlDesigns.designSave);
 router.post('/register', ctrlAuth.register);
 router.post('/login', ctrlAuth.login);
 

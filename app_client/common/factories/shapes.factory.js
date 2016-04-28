@@ -10,8 +10,8 @@
             var rect = new fabric.Rect({
                 left: options.startPosition.x,
                 top: options.startPosition.y,
-                width:10,
-                height:10,
+                width:0,
+                height:0,
                 stroke:'black',
                 strokeWidth:1,
                 fill:'transparent'

@@ -3,25 +3,44 @@ var Design = mongoose.model('Design');
 
 module.exports.designsRead = function(req, res) {
     
-    if(!req.payload._id) {
-        res.status(401).json({
-            'message' : 'UnauthorizedError: private profile'
-            
-        });
-        
-    } else {
-        Design
-            .findById(req.payload.email)
-            .exec(function(err, designs) {
-                res.status(200).json(designs);
-        });
-    }
+    console.log(req.query.email);
+    Design
+        .find({'owner': req.query.email})
+        .exec(function(err, designs) {
+            console.log(designs);
+            res.status(200);
+            res.json({'designs': designs});
+    });  
 };
 
-//module.exports.designSave = funtion(req,res) {
-//    var design = new Design();
-//    
-//    design.title = 'test';
-//    design.owner = req.payload.email;
-//    design.design = req.
-//};
+module.exports.designSave = function(req,res) {
+    var design = new Design();
+    var id;
+    if(req.body.id === undefined) {
+        design.title = 'test';
+        design.owner = req.body.owner;
+        design.design = req.body.design;
+        design.save(function(err) {
+            if(err) throw err;
+            console.log('design saved successfully');
+
+        });
+        console.log(design._id);
+        id = design._id;
+    } else {
+        Design.findById(req.body.id, function(err, design) {
+            if(err) throw err;
+            
+            design.design = req.body.design;
+            
+            design.save(function(err) {
+                if(err) throw err;
+                
+                console.log('design updated successfully');
+            });
+            id = design._id;
+        });
+        
+    }
+    res.send(id);
+};

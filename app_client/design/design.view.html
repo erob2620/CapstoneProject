@@ -1,9 +1,9 @@
 <div class="controls">
-    <input type="button" id="save" value="Save design" onclick="saveCanvas()"/>
+    <input type="button" id="save" value="Save design" ng-click="vm.saveCanvas()"/>
     <input type="button" id="delete" value="Delete" onclick="deleteShape()"/>
-    <input type="button" id="rect" value="Rectangle" onclick="changeShapeToRect()"/>
-    <input type="button" id="ellipse" value="Ellipse" onclick="changeShapeToEllipse()"/>
-    <input type="button" id="triangle" value="Triangle" onclick="changeShapeToTriangle()"/>
+    <input type="button" id="rect" value="Rectangle" ng-click="vm.changeToRect()"/>
+    <input type="button" id="ellipse" value="Ellipse" ng-click="vm.changeToEllipse()"/>
+    <input type="button" id="triangle" value="Triangle" ng-click="vm.changeToTriangle()"/>
 </div>
 <div class="fabric-container" >
     <canvas id='c' width="800" height="800">canvas not supported</canvas>

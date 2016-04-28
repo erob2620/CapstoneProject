@@ -3,10 +3,11 @@
         .module('app')
         .controller('designCtrl', designCtrl); 
     
-    designCtrl.$inject = ['$location','$scope', 'DrawingService'];
+    designCtrl.$inject = ['$location','$scope', 'DrawingService', 'meanData', 'authentication'];
     
-    function designCtrl($location, $scope, DrawingService) {
+    function designCtrl($location, $scope, DrawingService, meanData, authentication) {
         var vm = this;
+        vm.designId;
         vm.shapeType = 'rect';
         vm.drawingMode = true;
         vm.isDown = false;
@@ -38,6 +39,42 @@
                     break;
             }
         });
+        document.addEventListener('keyup', function(event) {
+            switch( event.keyCode) {
+                case 16: 
+                    console.log('shift released');
+                    MyApp.keepSquare = false;
+                    break;
+            }
+        });
+        vm.saveCanvas = function() {
+            var canvasJson = vm.canvas.toJSON();
+            console.log(canvasJson);
+            var canvasString = JSON.stringify(canvasJson);
+//            meanData.getProfile().success(function(data) {
+//                console.log(data.email);
+//                vm.currentUser = data.email;
+//                console.log(vm.currentUser);
+//
+//            });
+            vm.currentEmail = authentication.currentUser().email;
+            console.log(vm.currentEmail);
+            vm.design = {
+                id: vm.designId,
+                owner: vm.currentEmail,
+                design: canvasString
+            }
+            meanData.saveDesign(vm.design);
+        }
+        vm.changeToRectangle = function() {
+            vm.shapeType = 'rect';
+        };
+        vm.changeToEllipse = function() {
+            vm.shapeType = 'ellipse';
+        };
+        vm.changeToTriangle = function() {
+            vm.shapeType = 'triangle';
+        };
         vm.setUpCanvas = function() {
             vm.canvas.on('mouse:down', function(event) {
                 console.log(event);

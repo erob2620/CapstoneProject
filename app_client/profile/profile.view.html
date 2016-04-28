@@ -11,7 +11,7 @@
 <div class='designs' ng-if='vm.designs.length !== 0'>
     <h3>You have designs</h3>
     <ul ng-repeat='design in vm.designs'>
-        <a ng-href='/design/{{design._id}}'>{{design.name}}</a>
+        <a ng-href='/design/{{design._id}}'>{{design.title}}</a>
     </ul>
 </div>
 <div class='designs' ng-if='vm.designs.length == 0'>

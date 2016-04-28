@@ -11,10 +11,15 @@
         meanData.getProfile()
             .success(function(data) {
                 vm.user = data;
-                meanData.getDesigns()
+                console.log(vm.user.email);
+                meanData.getDesigns(vm.user.email)
                     .success(function(data) {
-                        vm.designs = data;
-                })
+                        console.log(data);
+                        vm.designs = data.designs;
+                    })
+                    .error( function(e) {
+                        console.log(e);
+                    });
             })
             .error( function(e) {
                 console.log(e);
