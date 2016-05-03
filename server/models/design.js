@@ -4,7 +4,8 @@ var mongoose = require('mongoose'),
 var designSchema = new Schema({
     title: String,
     owner: String,
-    design: String
+    design: String,
+    share: [String]
 });
 
 mongoose.model('Design', designSchema);

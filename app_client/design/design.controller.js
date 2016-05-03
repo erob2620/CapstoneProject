@@ -3,11 +3,17 @@
         .module('app')
         .controller('designCtrl', designCtrl); 
     
-    designCtrl.$inject = ['$location','$scope', 'DrawingService', 'meanData', 'authentication'];
+    designCtrl.$inject = ['$location','$scope', 'DrawingService', 'meanData', 'authentication', '$routeParams'];
     
-    function designCtrl($location, $scope, DrawingService, meanData, authentication) {
+    function designCtrl($location, $scope, DrawingService, meanData, authentication, $routeParams) {
         var vm = this;
-        vm.designId;
+        vm.designId = $routeParams.designId;
+        vm.currentEmail = authentication.currentUser().email;
+        vm.shareInfo = {
+            id: $routeParams.designId,
+            email: ''
+        };
+        
         vm.shapeType = 'rect';
         vm.drawingMode = true;
         vm.isDown = false;
@@ -15,12 +21,35 @@
 //        $scope.FabricConstants = FabricConstants;
         vm.canvas;
         vm.init = function() {
+            vm.connectToSocket();
             console.log('initializing fabric');
             vm.canvas = new fabric.Canvas('c');
             console.log(vm.canvas);
             vm.canvas.selection = false;
             vm.setUpCanvas();
+            meanData.getDesign(vm.designId)
+                .success(function(data) {
+                    vm.canvasDesign = data.design.design;
+                    vm.canvas.loadFromJSON(vm.canvasDesign.design, vm.canvas.renderAll.bind(vm.canvas));
+                    vm.designName = data.design.title;
+                    console.log(data);
+                })
+                .error(function(e) {
+                    console.log(e);
+                });  
         };
+        vm.connectToSocket = function(){
+            console.log(location.pathname.toString());
+            var pathArray = location.pathname.split('/');
+            socket = io('/' + pathArray[1], {query: 'room=' + pathArray[2]});
+            
+            socket.on('updateGroup', function(msg) {
+                console.log(msg); 
+            });
+            socket.on('designUpdate', function(design) {
+                vm.canvas.loadFromJSON(design, vm.canvas.renderAll.bind(vm.canvas));
+            }); 
+        }
         document.addEventListener('keydown', function(event) {
             console.log('in key down');
             switch (event.keyCode) {
@@ -43,7 +72,7 @@
             switch( event.keyCode) {
                 case 16: 
                     console.log('shift released');
-                    MyApp.keepSquare = false;
+                    vm.keepSquare = false;
                     break;
             }
         });
@@ -64,9 +93,16 @@
                 owner: vm.currentEmail,
                 design: canvasString
             }
-            meanData.saveDesign(vm.design);
+            meanData.saveDesign(vm.design)
+                .success(function(data) {
+                    console.log('about to call socket');
+                    socket.emit('updateDesign', canvasString);
+                })
+                .error(function(e) {
+                    console.log(e);
+                });
         }
-        vm.changeToRectangle = function() {
+        vm.changeToRect = function() {
             vm.shapeType = 'rect';
         };
         vm.changeToEllipse = function() {
@@ -183,7 +219,25 @@
             vm.canvas.observe('object:modified', function(e) {
                 e.target.resizeToScale();
             });
-            
+            vm.openModal = function() {
+                console.log('modal opened');
+                $('.shareModal').css('display','block');
+            };
+            vm.closeModal = function() {
+                $('.shareModal').css('display', 'none');
+            };
+            vm.shareDesign = function() {
+                meanData.shareDesign(vm.shareInfo)
+                    .success(function(data){
+                        console.log(data);
+                        vm.closeModal();
+                        alert('Project shared');
+                    })
+                    .error(function(e) {
+                        console.log(e);
+                    });
+            };
+
             fabric.Object.prototype.resizeToScale = function() {
                 switch(this.type) {
                     case 'rect':

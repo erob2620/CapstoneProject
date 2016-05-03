@@ -1,8 +1,9 @@
 var express = require('express'),
+    app = express(),
     logger = require('morgan'),
     path = require('path'),
     bodyParser = require('body-parser'),
-    http = require('http'),
+    http = require('http').Server(app),
     cookieParser = require('cookie-parser'),
     passport = require('passport');
 require('./server/models/db');
@@ -14,7 +15,28 @@ require('./server/config/passport');
 var routesApi = require('./server/routes/index');
 var env = process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
-var app = express();
+var sio = require('socket.io')(http);
+
+var namespaces = [
+    sio.of('/design')
+];
+
+namespaces.forEach(function(element, index, array) {
+    console.log(element.name)
+    element.on('connect', function(socket) {
+        console.log('someone joined in socket: ' + element.name);
+        socket.room = socket.handshake.query.room;
+        socket.join(socket.room, function(err) {
+            if(err) console.log(err);
+            console.log(socket.rooms);
+        });
+        socket.broadcast.to(socket.room).emit('updateGroup', 'new user has been added to room');
+        
+        socket.on('updateDesign', function(design) {
+            socket.broadcast.to(socket.room).emit('designUpdate', design); 
+        });
+    });
+});
 
 app.set('views', __dirname + '/views');
 app.set('view engine','jade');
@@ -50,6 +72,6 @@ app.use(function(err,req,res,next) {
 });
 
 var port = 3000;
-app.listen(port, function() {
+http.listen(port, function() {
     console.log('listening on port 3000');
 });

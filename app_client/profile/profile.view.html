@@ -8,6 +8,7 @@
         <p class='form-control-static'>{{vm.user.email}}</p>
     </div>
 </form>
+<button id='logoutBtn' ng-click='vm.logOut()'>Log out</button>
 <div class='designs' ng-if='vm.designs.length !== 0'>
     <h3>You have designs</h3>
     <ul ng-repeat='design in vm.designs'>
@@ -17,7 +18,38 @@
 <div class='designs' ng-if='vm.designs.length == 0'>
     <h3>You have no designs</h3>
 </div>
+<div class="sharedDesigns" ng-if='vm.sharedDesigns.length != 0'>
+    <h3>Designs shared with you</h3>
+    <ul ng-repeat='design in vm.sharedDesigns'>
+        <a ng-href='/design/{{design._id}}'>
+            {{design.title}}
+        </a>
+    </ul>
+</div>
 <div>
-    <a href='/design'>Create Design</button>
+    <button id='myBtn' ng-click='vm.openModal()'>Create Design</button>
+    <div class="designModal" class='modal'>
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close" ng-click='vm.closeModal()'>X</span>
+                <h2>Create a new design</h2>
+            </div>
+            <div class="modal-body">
+                <form ng-submit="vm.submitNewDesign()">
+                    <label for="title">Name of Project:</label>
+                    <input ng-model='vm.design.title' type="text" id="title" required>
+                    <br>
+                    <label for="size">Size of project</label>
+                    <div id="size">
+                        <label><input type="radio" name="canvasSize" value="Small" id="smallSize" required>Small(400, 800)</label>
+                        <label><input type='radio' name='canvasSize' value="Medium" id="mediumSize" required>Medium(800,800)</label>
+                        <label><input type="radio" name="canvasSize" value="Large" id="largeSize" required>Large(1500, 800)</label>
+                    </div>
+                    <button type="submit">Create</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
 </div>
 

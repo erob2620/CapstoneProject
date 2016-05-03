@@ -1,11 +1,18 @@
-<form ng-submit='vm.onSubmit()'>
-    <div class='form-group'>
-        <label for='email'>Email address</label>
-        <input type='email' class='form-control' id='email' placeholder='Enter email' ng-model='vm.credentials.email'>
-    </div>
-    <div class='form-group'>
-        <label for='password'>Password</label>
-        <input type='password' class='form-control' id='password' placeholder='Enter password' ng-model='vm.credentials.password'>
-    </div>
-    <button type='submit' class='btn btn-default'>Sign in!</button>
-</form>
+<div class="container">
+    <div id="background"></div>
+    <form class='loginForm' ng-submit='vm.onSubmit()'>
+        <h2 class="loginTitle">Login</h2>
+        <div class='form-group'>
+            <label class='label' for='email'>Email address</label>
+            <br>
+            <input type='email' class='form-control' id='email' placeholder='Enter email' ng-model='vm.credentials.email' required>
+        </div>
+        <div class='form-group'>
+            <label class='label' for='password'>Password</label>
+            <br>
+            <input type='password' class='form-control' id='password' placeholder='Enter password' ng-model='vm.credentials.password' required>
+        </div>
+        <button type='submit' class='btn btn-default'>Sign in!</button>
+        <p class="registerLink">Don't have an account? <a class="link" ng-href='register'>click here to register</a></p>
+    </form>
+</div>

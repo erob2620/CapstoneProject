@@ -13,7 +13,11 @@ var ctrlAuth = require('../controllers/authentication');
 var ctrlDesigns = require('../controllers/designs');
 router.get('/profile', auth, ctrlProfile.profileRead);
 router.get('/designs', ctrlDesigns.designsRead);
+router.get('/designs/shared', ctrlDesigns.sharedDesign);
+router.get('/design', ctrlDesigns.readDesign);
+//router.get('/oauthcallback', ctrlDesigns.getToken);
 router.post('/designs/save', ctrlDesigns.designSave);
+router.post('/designs/share', ctrlDesigns.shareDesign);
 router.post('/register', ctrlAuth.register);
 router.post('/login', ctrlAuth.login);
 

@@ -24,7 +24,7 @@
                 controller:'profileCtrl',
                 controllerAs: 'vm'
             })
-            .when('/design', {
+            .when('/design/:designId', {
                 templateUrl: '/design/design.view.html',
                 controller:'designCtrl',
                 controllerAs:'vm'
