@@ -7,7 +7,10 @@
     <input type="button" id="rect" value="Rectangle" ng-click="vm.changeToRect()"/>
     <input type="button" id="ellipse" value="Ellipse" ng-click="vm.changeToEllipse()"/>
     <input type="button" id="triangle" value="Triangle" ng-click="vm.changeToTriangle()"/>
+    <input type="button" id="imgShape" value="imgShape" ng-click="vm.changeToImgShape()"/>
+    <input type="button" id="text" value="text" ng-click="vm.changeToText()"/>
     <button id='myBtn' ng-click='vm.openModal()'>Share Design</button>
+    <a id="exportLink" href='#'>Export Design</a>
     <div class="shareModal designModal" class='modal'>
         <div class="modal-content">
             <div class="modal-header">
@@ -19,6 +22,10 @@
                     <label for="title">Email address:</label>
                     <input ng-model='vm.shareInfo.email' type="text" id="title" required>
                     <br>
+                    <div id="permission">
+                        <label><input type="radio" name="permission" value="edit" id="edit" ng-model='vm.shareInfo.permission' required>Can Edit</label>
+                        <label><input type='radio' name='permission' value="view" id="view" ng-model='vm.shareInfo.permission' required>View only</label>
+                    </div>
                     <button type="submit">Share</button>
                 </form>
             </div>
@@ -26,6 +33,6 @@
     </div>
 </div>
 <div class="fabric-container" >
-    <canvas id='c' width="800" height="800">canvas not supported</canvas>
+    <canvas id='c' width="800" height='800'>canvas not supported</canvas>
 </div>
 

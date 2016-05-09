@@ -5,7 +5,15 @@ var designSchema = new Schema({
     title: String,
     owner: String,
     design: String,
-    share: [String]
+    share: [{
+        email: String,
+        permission: String
+    }],
+    size: {
+        width: Number,
+        height: Number
+    },
+    lastEdit: Date
 });
 
 mongoose.model('Design', designSchema);

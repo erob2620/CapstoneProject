@@ -3,8 +3,8 @@
     angular
         .module('app')
         .controller('registerCtrl', registerCtrl);
-    registerCtrl.$inject = ['$location', 'authentication'];
-    function registerCtrl($location, authentication) {
+    registerCtrl.$inject = ['$location', 'authentication', '$scope'];
+    function registerCtrl($location, authentication, $scope) {
         var vm = this;
 
         vm.credentials = {
@@ -18,7 +18,7 @@
             authentication
                 .register(vm.credentials)
                 .error(function(err) {
-                    console.log(err);
+                    $scope.error = err.message;
                 })
                 .then(function() {
                     $location.path('profile');

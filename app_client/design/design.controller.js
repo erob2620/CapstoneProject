@@ -11,28 +11,35 @@
         vm.currentEmail = authentication.currentUser().email;
         vm.shareInfo = {
             id: $routeParams.designId,
-            email: ''
+            email: '',
+            permission: ''
         };
         
         vm.shapeType = 'rect';
         vm.drawingMode = true;
         vm.isDown = false;
         vm.startPosition = {};
-//        $scope.FabricConstants = FabricConstants;
+        vm.viewOnly = false;
         vm.canvas;
         vm.init = function() {
             vm.connectToSocket();
             console.log('initializing fabric');
             vm.canvas = new fabric.Canvas('c');
-            console.log(vm.canvas);
             vm.canvas.selection = false;
             vm.setUpCanvas();
             meanData.getDesign(vm.designId)
                 .success(function(data) {
+                    vm.setCanvasSize(data.design.size);
                     vm.canvasDesign = data.design.design;
-                    vm.canvas.loadFromJSON(vm.canvasDesign.design, vm.canvas.renderAll.bind(vm.canvas));
+                    if(data.permission === 'edit') {
+                        vm.canvas.loadFromJSON(vm.canvasDesign, vm.canvas.renderAll.bind(vm.canvas));
+                    } else {
+                        vm.canvas.loadFromJSON(vm.canvasDesign, vm.canvas.renderAll.bind(vm.canvas), function(o, object) {
+                            object.set('selectable', false);
+                        });
+                        vm.viewOnly = true;
+                    }
                     vm.designName = data.design.title;
-                    console.log(data);
                 })
                 .error(function(e) {
                     console.log(e);
@@ -46,8 +53,15 @@
             socket.on('updateGroup', function(msg) {
                 console.log(msg); 
             });
-            socket.on('designUpdate', function(design) {
-                vm.canvas.loadFromJSON(design, vm.canvas.renderAll.bind(vm.canvas));
+            socket.on('designUpdate', function(shape) {
+                if(!vm.viewOnly) {
+                    vm.canvas.loadFromJSON(design, vm.canvas.renderAll.bind(vm.canvas));
+                    
+                } else {
+                    vm.canvas.loadFromJSON(design, vm.canvas.renderAll.bind(vm.canvas), function(o, object) {
+                            object.set('selectable', false);
+                    });
+                }
             }); 
         }
         document.addEventListener('keydown', function(event) {
@@ -60,6 +74,7 @@
                         vm.canvas.remove(shapeToRemove);
                         vm.canvas.remove(shapeToRemove);
                         vm.canvas.renderAll();
+                        vm.saveCanvas();
                         return;
                     }
                     break;
@@ -80,12 +95,6 @@
             var canvasJson = vm.canvas.toJSON();
             console.log(canvasJson);
             var canvasString = JSON.stringify(canvasJson);
-//            meanData.getProfile().success(function(data) {
-//                console.log(data.email);
-//                vm.currentUser = data.email;
-//                console.log(vm.currentUser);
-//
-//            });
             vm.currentEmail = authentication.currentUser().email;
             console.log(vm.currentEmail);
             vm.design = {
@@ -96,12 +105,18 @@
             meanData.saveDesign(vm.design)
                 .success(function(data) {
                     console.log('about to call socket');
-                    socket.emit('updateDesign', canvasString);
+                    socket.emit('updateDesign', vm.canvas.getActiveObject());
                 })
                 .error(function(e) {
                     console.log(e);
                 });
         }
+        vm.setCanvasSize = function(size) {
+            console.log(size);
+            vm.canvas.setWidth(size.width);
+            vm.canvas.setHeight(size.height);
+
+        };
         vm.changeToRect = function() {
             vm.shapeType = 'rect';
         };
@@ -111,23 +126,46 @@
         vm.changeToTriangle = function() {
             vm.shapeType = 'triangle';
         };
+        vm.changeToText = function() {
+            vm.shapeType = 'i-text';
+        };
+        vm.changeToImgShape = function() {
+            vm.shapeType = 'imgShape';
+        };
         vm.setUpCanvas = function() {
+            document.getElementById('exportLink').addEventListener('click', function(e) {
+                console.log('called');
+                if(!fabric.Canvas.supports('toDataURL')) {
+                    alert('This browlser doesn\'t support exporting')
+                } else {
+                    console.log('trying to export');
+                    this.href = vm.canvas.toDataURL({
+                        format: 'png',
+                        quality: 0.8
+                    });
+                    this.download = vm.designName + '.png';
+                }
+            });
             vm.canvas.on('mouse:down', function(event) {
-                console.log(event);
-                if(!vm.drawingMode) return;
+                if(!vm.drawingMode || vm.viewOnly) return;
                 vm.isDown = true;
                 vm.startPosition.x = event.e.offsetX - 5;
                 vm.startPosition.y = event.e.offsetY - 5;
-                vm.shape = DrawingService.createShape({
+                vm.drawingMode = false;
+                DrawingService.createShape({
                     shapeType: vm.shapeType,
                     startPosition: vm.startPosition
+                }, function(shape) {
+                    vm.shape = shape;
+                    vm.canvas.add(vm.shape);
+                    vm.canvas.renderAll();
+                    vm.drawingMode = true;
                 });
-                console.log(vm.shape);
-                vm.canvas.add(vm.shape);
+
             });
             vm.canvas.on('mouse:move', function(event) {
                 var deltaX, deltaY;
-                if(!vm.isDown || !vm.drawingMode) return;
+                if(!vm.isDown || !vm.drawingMode || vm.viewOnly) return;
                 switch(vm.shapeType) {
                     case 'rect':
                         if(vm.keepSquare) {
@@ -181,6 +219,26 @@
                         vm.shape.set({points: points, width: boundingBox.width, height: boundingBox.height});
                         vm.shape.setCoords();
                         break;
+                    case 'i-text':
+                        deltaX = event.e.offsetX - vm.startPosition.x;
+                        deltaY = event.e.offsetY - vm.startPosition.y;
+                        vm.shape.setWidth(deltaX);
+                        vm.shape.setCoords();
+                        break;
+                    case 'imgShape':
+                        deltaX = event.e.offsetX - vm.startPosition.x;
+                        deltaY = event.e.offsetY - vm.startPosition.y;
+                        vm.shape._objects.forEach(function(item) {
+                            item.setWidth(deltaX);
+                            item.setHeight(deltaY);
+                            item.setCoords();
+                        });
+                        var boundingRect = vm.shape.getBoundingRect();
+                        console.log(vm.shape.oCoords);
+                        vm.shape.set('left', vm.startPosition.x);
+                        vm.shape.set('top', vm.startPosition.y);
+                        vm.shape.setObjectsCoords();
+                        break;
                 }
                 vm.canvas.renderAll();
             });
@@ -202,15 +260,25 @@
                             vm.shape.rotate(180);
                             vm.shape.setCoords();
                         }
+                    } else if(vm.shapeType === 'imgShape') {
+                        vm.shape.setWidth(vm.shape._objects[0].width);
+                        vm.shape.setHeight(vm.shape._objects[0].height);
+                        vm.shape.setTransformMatrix([1,0,0,1,-30,-20]);
+                        vm.shape.setCoords();
+                        console.log(vm.shape);
+                        vm.canvas.renderAll();
                     }
                     vm.canvas.setActiveObject(vm.shape);
+                    vm.saveCanvas();
                 } 
             });
             vm.canvas.on('object:selected', function() {
-                vm.drawingMode = false;
-                var shape = vm.canvas.getActiveObject();
-                vm.shapeType = shape.type;
-                console.log(vm.shapeType);
+                if(!vm.viewOnly) {
+                    vm.drawingMode = false;
+                    var shape = vm.canvas.getActiveObject();
+                    vm.shapeType = shape.type;
+                    console.log(vm.shapeType);
+                }
             });
             vm.canvas.on('selection:cleared', function() {
                 vm.drawingMode = true;
@@ -218,6 +286,7 @@
     
             vm.canvas.observe('object:modified', function(e) {
                 e.target.resizeToScale();
+                vm.saveCanvas();
             });
             vm.openModal = function() {
                 console.log('modal opened');
@@ -227,6 +296,7 @@
                 $('.shareModal').css('display', 'none');
             };
             vm.shareDesign = function() {
+                if(!vm.viewOnly) {
                 meanData.shareDesign(vm.shareInfo)
                     .success(function(data){
                         console.log(data);
@@ -236,9 +306,11 @@
                     .error(function(e) {
                         console.log(e);
                     });
+                }
             };
 
             fabric.Object.prototype.resizeToScale = function() {
+                console.log(this);
                 switch(this.type) {
                     case 'rect':
                         this.width *= this.scaleX;
@@ -272,6 +344,12 @@
                         this.scaleY = 1;
                         this.width = this.getBoundingBox().width;
                         this.height = this.getBoundingBox().height;
+                        break;
+                    case 'imgShape':
+                        this.width *= this.scaleX;
+                        this.height *= this.scaleY;
+                        this.scaleX = 1;
+                        this.scaleY = 1;
                         break;
                 }
 

@@ -32,7 +32,7 @@ module.exports.designsRead = function(req, res) {
     });  
 };
 module.exports.sharedDesign = function(req, res) {
-    Design.find({'share': req.query.email})
+    Design.find({'share': {$elemMatch: {email: req.query.email}}})
         .exec(function(err, designs) {
             console.log(designs);
             res.status(200);
@@ -43,15 +43,28 @@ module.exports.readDesign = function(req, res) {
     console.log(req.query.id);
     Design.findById(req.query.id, function(err, design) {
         if(err) console.log(err);
+        var perm;
+        console.log(req.query.email);
+        if(design.owner === req.query.email) {
+            perm = 'edit';
+        } else {
+            for(var i = 0; i < design.share.length; i++) {
+                if(req.query.email === design.share[i].email) {
+                    perm = design.share[i].permission;
+                }
+            }
+        }
+        console.log(perm);
         res.status(200);
-        res.json({'design': design});
+        res.json({'design': design, 'permission': perm});
     });
 };
 module.exports.shareDesign = function(req, res) {
     console.log(req.body);
     Design.findById(req.body.id, function(err, design) {
         if(err) console.log(err);
-        design.share = (design.share == '')? req.body.email : design.share += ', ' + req.body.email;
+        var userToShare = {email: req.body.email, permission: req.body.permission};
+        design.share.push(userToShare);
         design.save(function(err) {
             if(err) console.log(err);
             console.log('design updated successfully');
@@ -76,6 +89,8 @@ module.exports.designSave = function(req,res) {
         design.title = req.body.title;
         design.owner = req.body.owner;
         design.design = req.body.design;
+        design.size = req.body.size;
+        design.lastEdit = new Date();
         design.save(function(err) {
             if(err) throw err;
             console.log('design saved successfully');
@@ -89,7 +104,7 @@ module.exports.designSave = function(req,res) {
             if(err) throw err;
             
             design.design = req.body.design;
-            
+            design.lastEdit = new Date();
             design.save(function(err) {
                 if(err) throw err;
                 

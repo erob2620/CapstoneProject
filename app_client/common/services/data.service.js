@@ -33,7 +33,7 @@
                 });
         };
         var getDesign = function(designId) {
-            return $http.get('/api/design', {params: {id: designId}})
+            return $http.get('/api/design', {params: {id: designId, email: authentication.currentUser().email}})
                 .success(function(data) {
                     console.log(data);
                 })

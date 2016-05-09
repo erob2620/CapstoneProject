@@ -4,8 +4,8 @@ canvas {
 /*    background-color: black;*/
 }
 html {
-    padding: 0;
-    margin: 0;
+    padding: 0px;
+    margin: 0px;
 }
 body {
     padding:0px;
@@ -21,12 +21,49 @@ header {
     background-color: #225378;
     width: 100%;
 }
+.navbar {
+    margin: 0px;
+    height: 75px;
+}
 .title {
     position: relative;
     margin: 0px;
     padding: 10px 20px;
     top: 8px;
     color: #f3ffE2;
+    width: auto;
+    display: inline-block;
+}
+.title a {
+    text-decoration: none;
+    color: inherit;
+}
+.nav {
+    list-style-type: none;
+    float: right;
+    padding: 15px;
+    position: relative;
+    top: 10px;
+    right: 40px;
+    margin: 0px;
+    width: auto;
+    display: inline-block;
+}
+.nav li {
+    display: inline-block;
+    width: auto;
+}
+.slash {
+    color: #f3ffe2;
+}
+.nav li a{
+    font-size: 18px;
+    text-decoration: none;
+    color: #f3ffE2;
+}
+.navName {
+    position: relative;
+    bottom: 8px;
 }
 .controls {
     /*border:2px solid black; */
@@ -51,7 +88,7 @@ header {
     margin: auto;
     padding: 0;
     border: 1px solid #888;
-    width: 80%;
+    width: 60%;
     box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
     -webkit-animation-name: animatetop;
     -webkit-animation-duration: 0.4s;
@@ -69,11 +106,10 @@ header {
     from {top: -300px; opacity: 0}
     to {top: 0; opacity: 1}
 }
-Try it Yourself »
 
 /* The Close Button */
 .close {
-    color: #aaa;
+    color: #f3ffe2;
     float: right;
     font-size: 28px;
     font-weight: bold;
@@ -81,22 +117,72 @@ Try it Yourself »
 
 .close:hover,
 .close:focus {
-    color: black;
+    color: #EB7F00;
     text-decoration: none;
     cursor: pointer;
 }
 .modal-header {
     padding: 2px 16px;
-    background-color: #5cb85c;
+    background-color: #225378;
     color: white;
 }
 .modal-footer {
-    padding: 2px 16px;
+    padding: 2px 12px;
     background: #5cb85c;
-    color: white;
+    color: #f3ffe2;
 }
 .modal-body {
-    padding: 2px 16px;
+    padding: 10px 16px;
+    background-color: #f3ffe2;
+}
+.modalName {
+    font-size: 22px;
+    color: #1695A3;
+}
+.modalInput {
+    position: relative;
+    border-color:#cccccc; 
+    border-style:solid; 
+    padding:5px; 
+    font-size:13px; 
+    border-width:2px; 
+    border-radius:5px; 
+    bottom: 2px;
+}
+.sizeInput {
+    position: relative;
+    border-color:#cccccc; 
+    border-style:solid; 
+    padding:3px; 
+    font-size:13px; 
+    border-width:2px; 
+    border-radius:5px; 
+    margin-top: 3px;
+}
+.width {
+    left: 4px;
+}
+.modalSize {
+    font-size: 22px;
+    color: #1695A3;
+}
+.modalSizeOptions {
+    position: relative;
+    left: 30px;
+    padding-top: 5px;
+}
+.optionLabel {
+  color: #225378;
+}
+.option {
+    position: relative;
+    margin-top: 5px;
+}
+.customSizeDiv {
+    display: none;
+    position: relative;
+    left: 40px;
+    padding: 5px;
 }
 .view {
     height: 860px;
@@ -197,6 +283,16 @@ Try it Yourself »
     position: relative;
     padding: 5px;
     margin-top: 0px;
+    color: #f3ffe2;
+
+}
+.profileLabel {
+    font-size: 24px;
+    font-weight: bold;
+    position: relative;
+    padding: 5px;
+    margin-top: 0px;
+    color: #1695A3;
 }
 .registerLink {
     text-align: center;
@@ -215,4 +311,136 @@ Try it Yourself »
 }
 .registerForm {
     height: 450px;
+}
+.profileInfo {
+    position: relative;
+    height: 125px;
+    box-shadow: 0px 2px 3px black;
+    background-color: #f3ffe2;
+}
+.nameGroup {
+    display: block;
+    padding-top: 20px;
+    padding-left: 15px;
+    width: auto;
+    margin: 0px;
+}
+.fullName {
+    margin:0px;
+    width: auto;
+    display: inline-block;
+    font-size: 18px;
+}
+.email {
+    margin: 0px;
+    width: auto;
+    display: inline-block;
+    font-size: 18px;
+}
+.logoutBtn {
+  -webkit-border-radius: 28;
+  -moz-border-radius: 28;
+  border-radius: 28px;
+  font-family: Arial;
+  font-size: 16px;
+  background: #1695A3;
+  padding: 5px 10px 5px 10px;
+  text-decoration: none;
+  float: right;
+  border: none;
+  position: relative;
+  left: 15px;
+    color:#f3ffe2;
+    
+}
+.designBody {
+    background-color: #1695A3;
+    height: 100%;
+}
+.logoutBtn:hover {
+  background: #1aadba;
+  text-decoration: none;
+    cursor: pointer;
+}
+.designs {
+    position: relative;
+    display: inline-block;
+    width: auto;
+    height: auto;
+    padding: 15px 20px 10px 25px;
+}
+.individualDesign {
+    display: inline-block;
+    position: relative;
+    padding: 10px 5px 10px 5px;
+    text-align: center;
+    border: 3px solid #225378;
+    margin: 0px;
+    background-color: #F3FFE2;
+    width: 180px;
+    margin-right: 15px;
+    margin-bottom: 20px;
+}
+.lastEdit {
+    margin: 0px;
+    font-size: 12px;
+    color: #1695A3;
+}
+.designName {
+    position: relative;
+    display: inline-block;
+    text-decoration: none;
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: #EB7F00;
+}
+.designsTitle {
+    font-size: 24px;
+    color: #f3ffe2;
+    width: auto;
+}
+.buttonDiv {
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+}
+.createButton {
+  -webkit-border-radius: 10;
+  -moz-border-radius: 10;
+  border-radius: 10px;
+  font-family: Arial;
+  color: #f3ffe2;
+  font-size: 18px;
+  background: #225378;
+  padding: 10px 20px 10px 20px;
+  text-decoration: none;
+  border: none;
+  box-shadow: 1px 2px 3px black;
+}
+
+.createButton:hover { 
+  background: #2c6e9e;
+  text-decoration: none;
+    cursor: pointer;
+}
+.modalButton {
+  -webkit-border-radius: 10;
+  -moz-border-radius: 10;
+  border-radius: 10px;
+  font-family: Arial;
+  color: #f3ffe2;
+  font-size: 16px;
+  background: #225378;
+  padding: 5px 10px 5px 10px;
+  text-decoration: none;
+  border: none;
+  box-shadow: 1px 2px 3px black;
+    margin-top: 15px;
+    margin-bottom: 10px;
+}
+
+.modalButton:hover { 
+  background: #2c6e9e;
+  text-decoration: none;
+    cursor: pointer;
 }

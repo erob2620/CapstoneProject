@@ -1,51 +1,71 @@
-<form class='form-horizontal'>
-    <div class='form-group'>
-        <label class='col-sm-3 control-label'>Full name</label>
-        <p class='form-control-static'>{{vm.user.name}}</p>
+<div class='profileInfo'>
+    <div class='nameGroup'>
+        <label class='profileLabel' for="name">Full name: </label>
+        <p id='name' class='fullName'>{{vm.user.name}}</p>
     </div>
-    <div class='form-group'>
-        <label class='col-sm-3 control-label'>Email</label>
-        <p class='form-control-static'>{{vm.user.email}}</p>
+    <div class='nameGroup'>
+        <label class='profileLabel' for="email">Email:</label>
+        <p id='email' class='email'>{{vm.user.email}}</p>
     </div>
-</form>
-<button id='logoutBtn' ng-click='vm.logOut()'>Log out</button>
-<div class='designs' ng-if='vm.designs.length !== 0'>
-    <h3>You have designs</h3>
-    <ul ng-repeat='design in vm.designs'>
-        <a ng-href='/design/{{design._id}}'>{{design.title}}</a>
-    </ul>
 </div>
-<div class='designs' ng-if='vm.designs.length == 0'>
-    <h3>You have no designs</h3>
+<div class="designBody">
+    <div class='designs' ng-if='vm.designs.length !== 0'>
+        <h3 class="designsTitle">Your designs</h3>
+        <ul class="individualDesign" ng-repeat='design in vm.designs'>
+            <a class="designName" ng-href='/design/{{design._id}}'>{{design.title}}</a>
+            <p class='lastEdit'>Modified {{vm.timeSince(design.lastEdit)}}</p>
+        </ul>
+    </div>
+    <div class='designs' ng-if='vm.designs.length == 0'>
+        <h3 class="designsTitle">You have no designs</h3>
+    </div>
+    <br>
+    <div class="designs" ng-if='vm.sharedDesigns.length != 0'>
+        <h3 class="designsTitle">Designs shared with you</h3>
+        <ul class='individualDesign' ng-repeat='design in vm.sharedDesigns'>
+            <a class='designName' ng-href='/design/{{design._id}}'>
+                {{design.title}}
+            </a>
+            <p class='lastEdit'>Modified {{vm.timeSince(design.lastEdit)}}</p>
+        </ul>
+    </div>
+    <div class="buttonDiv">
+        <button id='myBtn' class='createButton' ng-click='vm.openModal()'>Create Design</button>
+    </div>
 </div>
-<div class="sharedDesigns" ng-if='vm.sharedDesigns.length != 0'>
-    <h3>Designs shared with you</h3>
-    <ul ng-repeat='design in vm.sharedDesigns'>
-        <a ng-href='/design/{{design._id}}'>
-            {{design.title}}
-        </a>
-    </ul>
-</div>
+
 <div>
-    <button id='myBtn' ng-click='vm.openModal()'>Create Design</button>
     <div class="designModal" class='modal'>
         <div class="modal-content">
             <div class="modal-header">
-                <span class="close" ng-click='vm.closeModal()'>X</span>
+                <span class="close" ng-click='vm.closeModal()'>x</span>
                 <h2>Create a new design</h2>
             </div>
             <div class="modal-body">
                 <form ng-submit="vm.submitNewDesign()">
-                    <label for="title">Name of Project:</label>
-                    <input ng-model='vm.design.title' type="text" id="title" required>
+                    <label class="modalName" for="title">Name of Project:</label>
+                    <input class='modalInput' ng-model='vm.design.title' type="text" id="title" required>
                     <br>
-                    <label for="size">Size of project</label>
-                    <div id="size">
-                        <label><input type="radio" name="canvasSize" value="Small" id="smallSize" required>Small(400, 800)</label>
-                        <label><input type='radio' name='canvasSize' value="Medium" id="mediumSize" required>Medium(800,800)</label>
-                        <label><input type="radio" name="canvasSize" value="Large" id="largeSize" required>Large(1500, 800)</label>
+                    <label class='modalSize' for="size">Size of project</label>
+                    <div class='modalSizeOptions' id="size">
+                        <label class="optionLabel"><input type="radio" name="canvasSize" value="Small" id="smallSize" ng-model='vm.design.size' class='option' ng-change='openDiv("small")' required>Small (400px, 600px)</label>
+                        <br>
+                        <label class="optionLabel"><input type='radio' name='canvasSize' value="Medium" id="mediumSize" ng-model='vm.design.size' class="option" ng-change='openDiv("medium")' required>Medium (800px, 800px)</label>
+                        <br>
+                        <label class='optionLabel'><input type="radio" name="canvasSize" value="Large" id="largeSize" ng-model='vm.design.size' class="option" ng-change='openDiv("large")' required>Large (1500px, 1000px)</label>
+                        <br>
+                        <label class="optionLabel"><input type='radio' name='canvasSize' value='Custom' id='customSize' ng-model='vm.design.size' class='option' ng-change='openDiv("custom")' required>Custom</label>
+                        <div class="customSizeDiv" id="customSizeDiv">
+                            <label class='optionLabel' for="customWidth">Width: </label>
+                            <input type='number' min="1" id="width" class="sizeInput width" >
+                            <br>
+                            <label class='optionLabel' for="customHeight">Height:</label>
+                            <input type="number" min="1" id="height" class="sizeInput" >
+                        </div>
                     </div>
-                    <button type="submit">Create</button>
+                    <div class="buttonDiv">
+                        <button class='modalButton' type="submit">Create</button>
+                    </div>
                 </form>
             </div>
         </div>

@@ -1,12 +1,12 @@
 <div class='navbar navbar-default'>
-    <div class='container'>
-        <div id='navbar-main'>
-            <ul class='nav navbar-nav'>
-                <li><a href='/'>Home</a></li>
-            </ul>
-            <ul class='nav navbar-nav navbar-right'>
-                <li ng-hide='navvm.isLoggedIn'><a href='login'>Sign in</a></li>
-                <li ng-show='navvm.isLoggedIn'><a href='profile'>{{ navvm.currentUser.name }}</a></li>
+    <div class='navbar'>
+        <div class='navbar'>
+                <h1 class="title"><a href='/'>Design United</a></h1>
+            <ul class='nav'>
+                <li ng-hide='isLoggedIn()'><a href='login'>Sign In</a></li><span class="slash" ng-hide='isLoggedIn()'> / </span> 
+                <li ng-hide='isLoggedIn()'><a href='register'>Register</a></li>
+                <li ng-show='isLoggedIn()'><a href='profile' class='navName'>{{ currentUser() }}</a></li>
+                <li ng-show='isLoggedIn()'><button id='logoutBtn' class="logoutBtn" ng-click='logOut()'>Log out</button></li>
             </ul>
         </div>
     </div>

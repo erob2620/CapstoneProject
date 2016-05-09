@@ -7,7 +7,7 @@
         
         var drawingFactory = {};
         
-        drawingFactory.createShape = function(options) {
+        drawingFactory.createShape = function(options, callback) {
             var parentClass = null;
             console.log(options.shapeType);
             if(options.shapeType === 'rect') {
@@ -16,9 +16,15 @@
                 parentClass = ShapeService.createEllipse;
             } else if(options.shapeType === 'triangle') {
                 parentClass = ShapeService.createTriangle;
+            } else if(options.shapeType === 'imgShape') {
+                parentClass = ShapeService.createImgShape;
+            } else if(options.shapeType === 'i-text') {
+                parentClass = ShapeService.createText;
             }
             
-            return new parentClass(options);
+            new parentClass(options, function(shape) {
+                callback(shape);
+            });
         }
         return drawingFactory;
     };

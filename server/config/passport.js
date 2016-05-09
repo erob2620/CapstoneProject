@@ -12,13 +12,13 @@ passport.use(new LocalStrategy({
     
         if(!user) {
             return done(null, false, {
-                message: 'User not found'
+                message: 'Invalid Username and/or password'
             });
         }
         
         if(!user.validPassword(password)) {
             return done(null, false, {
-                message: 'Password is wrong'
+                message: 'Invalid Username and/or password'
             });
         }
         
