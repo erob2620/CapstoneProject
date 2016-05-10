@@ -53,12 +53,13 @@
             socket.on('updateGroup', function(msg) {
                 console.log(msg); 
             });
-            socket.on('designUpdate', function(shape) {
+            socket.on('designUpdate', function(design) {
+                console.log(design);
                 if(!vm.viewOnly) {
-                    vm.canvas.loadFromJSON(design, vm.canvas.renderAll.bind(vm.canvas));
+                    vm.canvas.loadFromJSON(design.design, vm.canvas.renderAll.bind(vm.canvas));
                     
                 } else {
-                    vm.canvas.loadFromJSON(design, vm.canvas.renderAll.bind(vm.canvas), function(o, object) {
+                    vm.canvas.loadFromJSON(design.design, vm.canvas.renderAll.bind(vm.canvas), function(o, object) {
                             object.set('selectable', false);
                     });
                 }
@@ -104,8 +105,9 @@
             }
             meanData.saveDesign(vm.design)
                 .success(function(data) {
+                    console.log(data);
                     console.log('about to call socket');
-                    socket.emit('updateDesign', vm.canvas.getActiveObject());
+                    socket.emit('updateDesign', vm.design);
                 })
                 .error(function(e) {
                     console.log(e);
