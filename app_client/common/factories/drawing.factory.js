@@ -20,6 +20,10 @@
                 parentClass = ShapeService.createImgShape;
             } else if(options.shapeType === 'i-text') {
                 parentClass = ShapeService.createText;
+            } else if(options.shapeType === 'polygon') {
+                parentClass = ShapeService.createPolygon;
+            } else if(options.shapeType === 'line') {
+                parentClass = ShapeService.createLine;
             }
             
             new parentClass(options, function(shape) {

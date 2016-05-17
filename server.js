@@ -15,7 +15,7 @@ require('./server/config/passport');
 var routesApi = require('./server/routes/index');
 var env = process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
-var sio = require('socket.io')(http);
+var sio = require('socket.io').listen(http);
 
 var namespaces = [
     sio.of('/design')
@@ -34,6 +34,11 @@ namespaces.forEach(function(element, index, array) {
         
         socket.on('updateDesign', function(design) {
             socket.broadcast.to(socket.room).emit('designUpdate', design); 
+        });
+        socket.on('sendMessage', function(msg) {
+            socket.emit('messageRecieved', msg);
+            socket.broadcast.to(socket.room).emit('messageRecieved', msg); 
+
         });
     });
 });

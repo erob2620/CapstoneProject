@@ -444,3 +444,6 @@ header {
   text-decoration: none;
     cursor: pointer;
 }
+.textOptions {
+    display: none;
+}

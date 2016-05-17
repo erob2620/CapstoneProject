@@ -8,14 +8,25 @@
     function designCtrl($location, $scope, DrawingService, meanData, authentication, $routeParams) {
         var vm = this;
         vm.designId = $routeParams.designId;
-        vm.currentEmail = authentication.currentUser().email;
+        vm.currentUser = authentication.currentUser();
+        vm.currentEmail = vm.currentUser.email;
+        vm.currentName = vm.currentUser.name;
         vm.shareInfo = {
             id: $routeParams.designId,
             email: '',
             permission: ''
         };
-        
-        vm.shapeType = 'rect';
+        vm.textOptions = {
+            text: '',
+            fontFamily: '',
+            fontSize: '',
+            textAlign: ''
+        };
+        vm.copiedObject;
+        vm.copiedObjects = new Array();
+        vm.state = new Array();
+        vm.mods = 0;
+        vm.shapeType = 'line';
         vm.drawingMode = true;
         vm.isDown = false;
         vm.startPosition = {};
@@ -24,7 +35,7 @@
         vm.init = function() {
             vm.connectToSocket();
             console.log('initializing fabric');
-            vm.canvas = new fabric.Canvas('c');
+            vm.canvas = new fabric.Canvas('c',{renderOnAddRemove: false});
             vm.canvas.selection = false;
             vm.setUpCanvas();
             meanData.getDesign(vm.designId)
@@ -33,12 +44,14 @@
                     vm.canvasDesign = data.design.design;
                     if(data.permission === 'edit') {
                         vm.canvas.loadFromJSON(vm.canvasDesign, vm.canvas.renderAll.bind(vm.canvas));
+                        
                     } else {
                         vm.canvas.loadFromJSON(vm.canvasDesign, vm.canvas.renderAll.bind(vm.canvas), function(o, object) {
                             object.set('selectable', false);
                         });
                         vm.viewOnly = true;
                     }
+                    vm.updateState();
                     vm.designName = data.design.title;
                 })
                 .error(function(e) {
@@ -54,7 +67,6 @@
                 console.log(msg); 
             });
             socket.on('designUpdate', function(design) {
-                console.log(design);
                 if(!vm.viewOnly) {
                     vm.canvas.loadFromJSON(design.design, vm.canvas.renderAll.bind(vm.canvas));
                     
@@ -63,10 +75,83 @@
                             object.set('selectable', false);
                     });
                 }
+                vm.updateState();
             }); 
+            socket.on('messageRecieved', function(msg) {
+                $('#messages').append($('<li>').text(msg.name + ": " + msg.message));
+            });
+        }
+        vm.copy = function() {
+            if(vm.canvas.getActiveGroup()){
+                for(var i in vm.canvas.getActiveGroup().objects){
+                    var object = fabric.util.object.clone(vm.canvas.getActiveGroup().objects[i]);
+                    object.set("top", object.top+5);
+                    object.set("left", object.left+5);
+                    vm.copiedObjects[i] = object;
+                }                    
+            }
+            else if(vm.canvas.getActiveObject()){
+                var object = fabric.util.object.clone(vm.canvas.getActiveObject());
+                object.set("top", object.top+5);
+                object.set("left", object.left+5);
+                vm.copiedObject = object;
+                vm.copiedObjects = new Array();
+            }
+        }
+        vm.paste = function() {
+            if(vm.copiedObjects.length > 0){
+                for(var i in vm.copiedObjects){
+                    vm.canvas.add(vm.copiedObjects[i]);
+                }                    
+            }
+            else if(vm.copiedObject){
+                vm.canvas.add(vm.copiedObject);
+            }
+            vm.canvas.renderAll(); 
+            vm.updateState();
+            vm.saveCanvas();
+        }
+        vm.undo = function() {
+            if(vm.mods < vm.state.length) {
+                var index = vm.state.length - 1 - vm.mods - 1;
+                console.log('index = ' + index);
+                if(index > -1) {
+                    vm.canvas.clear().renderAll();
+                    vm.canvas.loadFromJSON(vm.state[index]);
+                    vm.canvas.renderAll();
+                    vm.mods += 1;
+                    vm.saveCanvas();
+                }
+            }
+        }
+        vm.redo = function() {
+            console.log(vm.mods);
+            if(vm.mods > 0) {
+                vm.canvas.clear().renderAll();
+                vm.canvas.loadFromJSON(vm.state[vm.state.length - 1 - vm.mods + 1]);
+                vm.canvas.renderAll();
+                vm.mods -= 1;
+                vm.saveCanvas();
+            }
+        }
+        vm.sendMessage = function() {
+            vm.message = {name: vm.currentName, message: $('#m').val()};
+            $('#m').val('');
+            socket.emit('sendMessage', vm.message);
+        }
+        function regularPolygonPoints(sideCount, radius) {
+            var sweep = Math.PI*2/sideCount;
+            var cx = radius + vm.shape.get('left');
+            var cy = radius + vm.shape.get('top');
+            var points = [];
+            for(var i = 0; i < sideCount; i++) {
+                var x = cx+radius*Math.cos(i*sweep);
+                var y = cy+radius*Math.sin(i*sweep);
+                points.push({x:x, y:y});
+            }
+            return points;
         }
         document.addEventListener('keydown', function(event) {
-            console.log('in key down');
             switch (event.keyCode) {
                 case 46:
                     if(vm.canvas.getActiveObject()) {
@@ -82,6 +167,30 @@
                 case 16:
                     vm.keepSquare = true;
                     break;
+                case 67:
+                    if(event.ctrlKey) {
+                        event.preventDefault();
+                        vm.copy();
+                    }
+                    break;
+                case 86:
+                    if(event.ctrlKey) {
+                        event.preventDefault();
+                        vm.paste();
+                    }
+                    break;
+                case 90:
+                    if(event.ctrlKey) {
+                        event.preventDefault();
+                        vm.undo();
+                    }
+                    break;
+                case 89:
+                    if(event.ctrlKey) {
+                        event.preventDefault();
+                        vm.redo();
+                    }
+                    break;
             }
         });
         document.addEventListener('keyup', function(event) {
@@ -92,6 +201,12 @@
                     break;
             }
         });
+        vm.updateState = function() {
+            var canvasJson = vm.canvas.toJSON();
+            var canvasString = JSON.stringify(canvasJson);
+            vm.state.push(canvasString);
+
+        }
         vm.saveCanvas = function() {
             var canvasJson = vm.canvas.toJSON();
             console.log(canvasJson);
@@ -133,6 +248,9 @@
         };
         vm.changeToImgShape = function() {
             vm.shapeType = 'imgShape';
+        };
+        vm.changeToPolygon = function() {
+            vm.shapeType = 'polygon';
         };
         vm.setUpCanvas = function() {
             document.getElementById('exportLink').addEventListener('click', function(e) {
@@ -213,12 +331,13 @@
                         vm.shape.setCoords();
                         break;
                     case 'polygon':
-                        var centerX = vm.shape.getCenterPoint().x;
-                        console.log(vm.shape.getCenterPoint());
-                        var radius = (event.e.offsetX - vm.startPosition.x) / 2;
-                        var points = starPolygonPoints(vm.shape.get('points').length / 2, radius, radius / 2);
-                        var boundingBox = vm.shape.getBoundingBox();
-                        vm.shape.set({points: points, width: boundingBox.width, height: boundingBox.height});
+                        deltaX = event.e.offsetX - vm.startPosition.x;
+                        deltaY = event.e.offsetY - vm.startPosition.y;
+                        var radius = deltaX / 2;
+                        vm.shape.set({points: regularPolygonPoints(6, radius)});
+                        vm.shape.setWidth(deltaX);
+                        vm.shape.setHeight(deltaY);
+                        console.log(vm.shape);
                         vm.shape.setCoords();
                         break;
                     case 'i-text':
@@ -240,6 +359,10 @@
                         vm.shape.set('left', vm.startPosition.x);
                         vm.shape.set('top', vm.startPosition.y);
                         vm.shape.setObjectsCoords();
+                        break;
+                    case 'line':
+                        console.log(vm.shape);
+                        vm.shape.set({x2: event.e.offsetX, y2: event.e.offsetY});
                         break;
                 }
                 vm.canvas.renderAll();
@@ -269,18 +392,91 @@
                         vm.shape.setCoords();
                         console.log(vm.shape);
                         vm.canvas.renderAll();
+                    } else if(vm.shapeType === 'line') {
+//                        vm.shape.hasBorders = false;
+//                        vm.shape.setControlsVisibility({bl:false, mb:false, ml:false, mr:false, mt:false, tr:false, mtr:false});
+//                        vm.shape.lockUniScaling = false;
                     }
                     vm.canvas.setActiveObject(vm.shape);
+                    console.log('calling save');
+                    vm.updateState();
                     vm.saveCanvas();
                 } 
+            });
+            vm.canvas.on('before:selection:cleared', function() {
+                $('#textOptions').css('display', 'none');
             });
             vm.canvas.on('object:selected', function() {
                 if(!vm.viewOnly) {
                     vm.drawingMode = false;
                     var shape = vm.canvas.getActiveObject();
                     vm.shapeType = shape.type;
-                    console.log(vm.shapeType);
+                    console.log(shape);
+                    if(vm.shapeType === 'i-text') {
+                        vm.textOptions.text = shape.text;
+                        vm.textOptions.fontFamily = shape.fontFamily;
+                        vm.textOptions.fontSize = shape.fontSize;
+                        vm.textOptions.textAlign = shape.textAlign;
+                        $scope.$apply();
+                        $('#font-family select').val(shape.fontFamily);
+                        $('#font-size').val(shape.fontSize);
+
+                        $('#textOptions').css('display', 'block');
+                        $('#textValue').bind('change keyup', function() {
+                            console.log(this.value);
+                            shape.text = this.value;
+                            vm.canvas.renderAll();
+                            vm.saveCanvas();
+                        });
+                        $('#font-family').change(function() {
+                            console.log(this.value);
+                            shape.fontFamily = this.value;
+                            vm.canvas.renderAll();
+                            vm.saveCanvas();
+                        });
+                        $('#font-size').change(function() {
+                            shape.fontSize = this.value;
+                            vm.canvas.renderAll();
+                            vm.saveCanvas();
+                        });
+                        $('#font-align').change(function() {
+                            shape.fontAlign = this.value;
+                            vm.canvas.renderAll();
+                            vm.saveCanvas();
+                        });
+                        $('#toggleBold').on('click', function() {
+                             shape.fontWeight = (shape.fontWeight === 'bold') ? 'normal' : 'bold';
+                            vm.canvas.renderAll();
+                            vm.saveCanvas();
+                        });
+                        $('#toggleItalic').on('click', function() {
+                            shape.fontStyle = (shape.fontStyle === 'italic') ? 'normal' : 'italic';
+                            vm.canvas.renderAll();
+                            vm.saveCanvas();
+
+                        });
+                        $('#toggleUnderline').on('click', function() {
+                            shape.textDecoration = (shape.textDecoration === 'underline') ? '' : 'underline';
+                            vm.canvas.renderAll();
+                        });
+                        $('#toggleLinethrough').on('click', function() {
+                            shape.textDecoration = (shape.textDecoration === 'line-through') ? '' : 'line-through';
+                            vm.canvas.renderAll();
+                            vm.saveCanvas();
+                        });
+                    } else {
+                        $('#textOptions').css('display', 'none');
+                    }
                 }
+            });
+            vm.canvas.on('object:moving', function() {
+                vm.saveCanvas(); 
+            });
+            vm.canvas.on('object:scaling', function() {
+                vm.saveCanvas(); 
+            });
+            vm.canvas.on('object:rotating', function() {
+                vm.saveCanvas(); 
             });
             vm.canvas.on('selection:cleared', function() {
                 vm.drawingMode = true;
@@ -288,7 +484,10 @@
     
             vm.canvas.observe('object:modified', function(e) {
                 e.target.resizeToScale();
+                vm.updateState();
+                console.log(vm.state);
                 vm.saveCanvas();
+                
             });
             vm.openModal = function() {
                 console.log('modal opened');
@@ -336,16 +535,16 @@
                         break;
                     case 'polyline':
                     case 'polygon':
-                        var points = this.get('points');
-                        for (var i = 0; i < points.length; i++) {
-                            var p = points[i];
-                            p.x *= this.scaleX;
-                            p.y *= this.scaleY;
-                        }
-                        this.scaleX = 1;
-                        this.scaleY = 1;
-                        this.width = this.getBoundingBox().width;
-                        this.height = this.getBoundingBox().height;
+//                        var points = this.get('points');
+//                        for (var i = 0; i < points.length; i++) {
+//                            var p = points[i];
+//                            p.x *= this.scaleX;
+//                            p.y *= this.scaleY;
+//                        }
+//                        this.scaleX = 1;
+//                        this.scaleY = 1;
+//                        this.width = this.getBoundingBox().width;
+//                        this.height = this.getBoundingBox().height;
                         break;
                     case 'imgShape':
                         this.width *= this.scaleX;

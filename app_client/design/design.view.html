@@ -8,6 +8,7 @@
     <input type="button" id="ellipse" value="Ellipse" ng-click="vm.changeToEllipse()"/>
     <input type="button" id="triangle" value="Triangle" ng-click="vm.changeToTriangle()"/>
     <input type="button" id="imgShape" value="imgShape" ng-click="vm.changeToImgShape()"/>
+    <input type="button" id="polygon" value="polygon" ng-click="vm.changeToPolygon()"/>
     <input type="button" id="text" value="text" ng-click="vm.changeToText()"/>
     <button id='myBtn' ng-click='vm.openModal()'>Share Design</button>
     <a id="exportLink" href='#'>Export Design</a>
@@ -35,4 +36,60 @@
 <div class="fabric-container" >
     <canvas id='c' width="800" height='800'>canvas not supported</canvas>
 </div>
-
+<div id="textOptions" class='textOptions'>
+    <textarea id='textValue' ng-model='vm.textOptions.text'></textarea>
+    <div>
+        <label for="font-family">Font Family:</label>
+        <select id="font-family" ng-model='vm.textOptions.fontFamily'>
+            <option value="Arial">Arial</option>
+            <option value="Helvetica">Helvetica</option>
+            <option value="Myriad Pro">Myriad Pro</option>
+            <option value="Delicious">Delicious</option>
+            <option value="Verdana">Verdana</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Courier">Courier</option>
+            <option value="Impact">Impact</option>
+            <option value="Monaco">Monaco</option>
+            <option value="Optima">Optima</option>
+            <option value="Times New Roman">Times New Roman</option>
+        </select>
+        <label for="text-align" >Text Align:</label>
+        <select id='text-align' ng-model='vm.textOptions.textAlign'>
+            <option value="left" selected>Left</option>
+            <option value="center">Center</option>
+            <option value="right">Right</option>
+        </select>
+        <label for="font-size">Font Size:</label>
+        <select name='font-size' id="font-size" ng-model='vm.textOptions.fontSize'>
+            <option value='8'>8</option>
+            <option value='10'>10</option>
+            <option value='11'>11</option>
+            <option value='12'>12</option>
+            <option value='14'>14</option>
+            <option value='16'>16</option>
+            <option value='18'>18</option>
+            <option value='20'>20</option>
+            <option value='24'>24</option>
+            <option value='30'>30</option>
+            <option value='36'>36</option>
+            <option value='48'>48</option>
+            <option value='60'>60</option>
+            <option value='72'>72</option>
+        </select>
+    </div>
+    <div id='moreTextOptions'>
+        <button type="button" id='toggleBold'>Bold</button>
+        <button type="button" id='toggleItalic'>Italic</button>
+        <button type="button" id='toggleUnderline'>Underline</button>
+        <button type="button" id='toggleLinethrough'>Linethrough</button>
+    </div>
+</div>
+<div id='chatContainer' class='chat-container'>
+    <h2>Chat</h2>
+    <div id="chatRoom">
+        <ul id="messages"></ul>
+    </div>
+    <form ng-submit='vm.sendMessage()'>
+        <input type="text" id="m" /><button>Send</button>
+    </form>
+</div>

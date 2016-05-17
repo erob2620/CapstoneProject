@@ -76,7 +76,41 @@
             });
 
         }
-        
+        shapeFactory.createLine = function(params, callback) {
+            var points = [params.startPosition.x,params.startPosition.y,params.startPosition.x, params.startPosition.y];
+            console.log(points);
+            var line = new fabric.Line(points, {
+                strokeWidth: 3,
+                fill: 'black',
+                stroke: 'black',
+                originX: 'center',
+                originY: 'center'
+            });
+            callback(line);
+        }
+        shapeFactory.createPolygon = function(params, callback) {
+            var points = regularPolygonPoints(6,5);
+            var polygon = new fabric.Polygon(points, {
+                stroke: 'black',
+                left: params.startPosition.x,
+                top: params.startPosition.y,
+                strokeWidth: 2,
+                fill:'transparent'
+            }, false);
+            callback(polygon);
+        }
+        function regularPolygonPoints(sideCount, radius) {
+            var sweep = Math.PI*2/sideCount;
+            var cx = radius;
+            var cy = radius;
+            var points = [];
+            for(var i = 0; i < sideCount; i++) {
+                var x = cx+radius*Math.cos(i*sweep);
+                var y = cy+radius*Math.sin(i*sweep);
+                points.push({x:x, y:y});
+            }
+            return points;
+        }
         return shapeFactory;
     };
     
