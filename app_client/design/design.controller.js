@@ -78,7 +78,14 @@
                 vm.updateState();
             }); 
             socket.on('messageRecieved', function(msg) {
-                $('#messages').append($('<li>').text(msg.name + ": " + msg.message));
+                var messages = $('#messages');
+                var date = new Date();
+                var postfix = (date.getHours() >= 12) ? 'pm' : 'am';
+                var hours = date.getHours() - (date.getHours() >= 12 ? 12 : 0);
+                var minutes = (date.getMinutes() >= 10) ? date.getMinutes() : '0' + date.getMinutes();
+                var time = hours + ':' + minutes + postfix;
+                messages.append($('<li class="message">').html("<p class='messageName'>" + msg.name + "</p>" + "<p class='msgTime'>" + time + "</p>"  + "<p class='msgText'>" + msg.message + "</p>"));
+                messages.scrollTop(messages[0].scrollHeight);
             });
         }
         vm.copy = function() {
@@ -160,6 +167,7 @@
                         vm.canvas.remove(shapeToRemove);
                         vm.canvas.remove(shapeToRemove);
                         vm.canvas.renderAll();
+                        vm.updateState();
                         vm.saveCanvas();
                         return;
                     }
@@ -235,23 +243,75 @@
 
         };
         vm.changeToRect = function() {
+            $('#' + vm.shapeType).removeClass('selectedButton');
             vm.shapeType = 'rect';
+            $('#rect').addClass('selectedButton'); 
+            vm.canvas.defaultCursor = 'crosshair';
         };
         vm.changeToEllipse = function() {
+            $('#' + vm.shapeType).removeClass('selectedButton');
             vm.shapeType = 'ellipse';
+            $('#ellipse').addClass('selectedButton');
+            vm.canvas.defaultCursor = 'crosshair';
+
+
         };
         vm.changeToTriangle = function() {
+            $('#' + vm.shapeType).removeClass('selectedButton');
             vm.shapeType = 'triangle';
+            $('#triangle').addClass('selectedButton');
+            vm.canvas.defaultCursor = 'crosshair';
+
         };
+        
         vm.changeToText = function() {
+            $('#' + vm.shapeType).removeClass('selectedButton');
             vm.shapeType = 'i-text';
+            $('#i-text').addClass('selectedButton');
+            vm.canvas.defaultCursor = 'crosshair';
+
+
         };
         vm.changeToImgShape = function() {
+            $('#' + vm.shapeType).removeClass('selectedButton');
             vm.shapeType = 'imgShape';
+            $('#imgShape').addClass('selectedButton');
+            vm.canvas.defaultCursor = 'crosshair';
+
+
         };
         vm.changeToPolygon = function() {
+            $('#' + vm.shapeType).removeClass('selectedButton');
             vm.shapeType = 'polygon';
+            $('#polygon').addClass('selectedButton');
+            vm.canvas.defaultCursor = 'crosshair';
+
+
         };
+        vm.changeToPointer = function() {
+            $('#' + vm.shapeType).removeClass('selectedButton');
+            vm.shapeType = 'pointer';
+            $('#pointer').addClass('selectedButton');
+            vm.canvas.defaultCursor = 'default';
+
+
+        };
+        vm.changeToLine = function() {
+            $('#' + vm.shapeType).removeClass('selectedButton');
+            vm.shapeType = 'line';
+            $('#line').addClass('selectedButton');
+            vm.canvas.defaultCursor = 'crosshair';
+
+
+        };
+        $scope.toggleChat = function() {
+            console.log('toggle chat called');
+            if($('.chatBodyContainer').css('display') == 'inline-block') {
+                $('.chatBodyContainer').css('display','none');  
+            } else {
+                $('.chatBodyContainer').css('display' ,'inline-block');
+            }
+        }
         vm.setUpCanvas = function() {
             document.getElementById('exportLink').addEventListener('click', function(e) {
                 console.log('called');
@@ -267,7 +327,7 @@
                 }
             });
             vm.canvas.on('mouse:down', function(event) {
-                if(!vm.drawingMode || vm.viewOnly) return;
+                if(!vm.drawingMode || vm.viewOnly || vm.shapeType == 'pointer') return;
                 vm.isDown = true;
                 vm.startPosition.x = event.e.offsetX - 5;
                 vm.startPosition.y = event.e.offsetY - 5;
@@ -285,7 +345,7 @@
             });
             vm.canvas.on('mouse:move', function(event) {
                 var deltaX, deltaY;
-                if(!vm.isDown || !vm.drawingMode || vm.viewOnly) return;
+                if(!vm.isDown || !vm.drawingMode || vm.viewOnly || vm.shapeType == 'pointer') return;
                 switch(vm.shapeType) {
                     case 'rect':
                         if(vm.keepSquare) {
@@ -410,7 +470,9 @@
                 if(!vm.viewOnly) {
                     vm.drawingMode = false;
                     var shape = vm.canvas.getActiveObject();
+                    $('#' + vm.shapeType).removeClass('selectedButton');
                     vm.shapeType = shape.type;
+                    $('#' + vm.shapeType).addClass('selectedButton');
                     console.log(shape);
                     if(vm.shapeType === 'i-text') {
                         vm.textOptions.text = shape.text;
@@ -421,7 +483,7 @@
                         $('#font-family select').val(shape.fontFamily);
                         $('#font-size').val(shape.fontSize);
 
-                        $('#textOptions').css('display', 'block');
+                        $('#textOptions').css('display', 'inline-block');
                         $('#textValue').bind('change keyup', function() {
                             console.log(this.value);
                             shape.text = this.value;

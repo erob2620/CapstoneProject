@@ -2,7 +2,7 @@
     <div id="background"></div>
     <form class='registerForm loginForm' ng-submit='vm.onSubmit()'>
         <h2 class="registerTitle">Register</h2>
-        <p ngif='{{error}}'>{{error}}</p>
+        <p class='error' ngif='{{error}}'>{{error}}</p>
         <div class='form-group'>
             <label class='label'for='name'>Full name</label>
             <br>
