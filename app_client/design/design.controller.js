@@ -35,7 +35,7 @@
         vm.init = function() {
             vm.connectToSocket();
             console.log('initializing fabric');
-            vm.canvas = new fabric.Canvas('c',{renderOnAddRemove: false});
+            vm.canvas = window._canvas = new fabric.Canvas('c',{renderOnAddRemove: false});
             vm.canvas.selection = false;
             vm.setUpCanvas();
             meanData.getDesign(vm.designId)
@@ -81,7 +81,7 @@
                 var messages = $('#messages');
                 var date = new Date();
                 var postfix = (date.getHours() >= 12) ? 'pm' : 'am';
-                var hours = date.getHours() - (date.getHours() >= 12 ? 12 : 0);
+                var hours = date.getHours() - (date.getHours() > 12 ? 12 : 0);
                 var minutes = (date.getMinutes() >= 10) ? date.getMinutes() : '0' + date.getMinutes();
                 var time = hours + ':' + minutes + postfix;
                 messages.append($('<li class="message">').html("<p class='messageName'>" + msg.name + "</p>" + "<p class='msgTime'>" + time + "</p>"  + "<p class='msgText'>" + msg.message + "</p>"));
