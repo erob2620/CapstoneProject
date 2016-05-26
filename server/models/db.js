@@ -1,6 +1,6 @@
 var mongoose = require('mongoose');
 var gracefulShutdown;
-var dbURI = 'mongodb://admin:Nu120934114@ec2-52-40-54-219.us-west-2.compute.amazonaws.com:27017/capstone';
+var dbURI = 'mongodb://admin:Nu120934114@ec2-52-36-93-104.us-west-2.compute.amazonaws.com:27017/capstone';
 //if (process.env.NODE_ENV === 'production') {
 //  dbURI = process.env.MONGOLAB_URI;
 //}
