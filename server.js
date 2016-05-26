@@ -76,7 +76,7 @@ app.use(function(err,req,res,next) {
     }
 });
 
-var port = 8080;
+var port = 80;
 http.listen(port, function() {
-    console.log('listening on port 8080');
+    console.log('listening on port 80');
 });
