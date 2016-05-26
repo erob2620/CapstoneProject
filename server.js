@@ -76,7 +76,7 @@ app.use(function(err,req,res,next) {
     }
 });
 
-var port = 3000;
+var port = 8080;
 http.listen(port, function() {
-    console.log('listening on port 3000');
+    console.log('listening on port 8080');
 });
