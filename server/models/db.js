@@ -1,9 +1,9 @@
 var mongoose = require('mongoose');
 var gracefulShutdown;
-var dbURI = 'mongodb://localhost/capstone';
-if (process.env.NODE_ENV === 'production') {
-  dbURI = process.env.MONGOLAB_URI;
-}
+var dbURI = 'mongodb://admin:Nu120934114@ec2-52-40-54-219.us-west-2.compute.amazonaws.com:27017/capstone';
+//if (process.env.NODE_ENV === 'production') {
+//  dbURI = process.env.MONGOLAB_URI;
+//}
 
 mongoose.connect(dbURI);
 

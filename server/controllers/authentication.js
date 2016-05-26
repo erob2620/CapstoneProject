@@ -16,7 +16,7 @@ module.exports.register = function(req, res) {
             return;
         }
         console.log('outside of error');
-            if(req.body.password.length < 6) {
+        if(req.body.password.length < 6) {
             res.status(404);
             res.json({'message': 'Password must be longer than 6 characters'});
             return;
