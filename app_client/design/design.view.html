@@ -3,14 +3,14 @@
     <button class="shareButton" id='myBtn' ng-click='vm.openModal()'>Share Design</button>
 </div>
 <div class="controls">
-    <input type="button" id="pointer" ng-click="vm.changeToPointer()" class='pointerButton' title='Selector Tool'/>
-    <input type="button" id="rect" ng-click="vm.changeToRect()" class='rectButton' title='Rectangle Tool'/>
-    <input type="button" id="ellipse" ng-click="vm.changeToEllipse()" class='elipseButton' title='Ellipse Tool'/>
-    <input type="button" id="triangle" ng-click="vm.changeToTriangle()" class='triangleButton' title='Triangle Tool'/>
-    <input type="button" id="imgShape" ng-click="vm.changeToImgShape()" class='imgButton' class='imgShapeButton' title='Image Tool'/>
-    <input type="button" id="polygon" ng-click="vm.changeToPolygon()" class='polygonButton' title='Hexagon Tool'/>
-    <input type="button" id="i-text" ng-click="vm.changeToText()" class='textButton' title='Text Tool'/>
-    <input type="button" id="line" ng-click="vm.changeToLine()" class='lineButton' title='Line Tool'/>
+    <input type="button" id="pointer" ng-click="vm.changeToPointer()" class='pointerButton' title='Selector Tool (v)'/>
+    <input type="button" id="rect" ng-click="vm.changeToRect()" class='rectButton' title='Rectangle Tool (s)'/>
+    <input type="button" id="ellipse" ng-click="vm.changeToEllipse()" class='elipseButton' title='Ellipse Tool (e)'/>
+    <input type="button" id="triangle" ng-click="vm.changeToTriangle()" class='triangleButton' title='Triangle Tool (r)'/>
+    <input type="button" id="imgShape" ng-click="vm.changeToImgShape()" class='imgButton' class='imgShapeButton' title='Image Tool (i)'/>
+    <input type="button" id="polygon" ng-click="vm.changeToPolygon()" class='polygonButton' title='Hexagon Tool (p)'/>
+    <input type="button" id="i-text" ng-click="vm.changeToText()" class='textButton' title='Text Tool (t)'/>
+    <input type="button" id="line" ng-click="vm.changeToLine()" class='lineButton' title='Line Tool (l)'/>
     <a class='export' id="exportLink" href='#'>Export Design</a>
     <div class="shareModal designModal" class='modal'>
         <div class="modal-content">
@@ -85,7 +85,15 @@
             <option value='72'>72</option>
         </select>
     </div>
-
+</div>
+<div class="shapeInfoModal" id="shapeInfoDiv">
+    <h3 class="shapeInfoTitle">Shape Information</h3>
+    <form>
+        <label class='shapeLabel' for="label">Label:</label>
+        <input class='commentLabelText' id="label" type='text' ng-model='vm.shapeInfo.label'/>
+        <label class='shapeCommentLabel' for="comment">Comment:</label>
+        <textarea class='commentTextArea' id="comment" ng-model='vm.shapeInfo.comment'/>
+    </form>
 </div>
 <div id='chatContainer' class='chat-container'>
     <div class="chatHeader" id="chatHeader" ng-click='toggleChat()'>

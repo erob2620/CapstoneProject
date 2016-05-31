@@ -7,13 +7,13 @@ var transporter = mailer.createTransport(smtpTransport({
     secureConnection: true,
     port: 465,
     auth: {
-        user: 'emersonjroberts@gmail.com',
-        pass: 'Nu120934114'
+        user: 'admin@unitingdesigners.com',
+        pass: 'This is my password'
     }
 }));
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 var mailOptions = {
-    from: '"Test test" <emersonjroberts@gmail.com>',
+    from: '"UnitingDesigners',
     to: '',
     subject: 'A project has been shared with you',
     test: 'This user has shared a project with you',
@@ -69,6 +69,7 @@ module.exports.shareDesign = function(req, res) {
             if(err) console.log(err);
             console.log('design updated successfully');
             mailOptions.to = req.body.email;
+            mailOptions.html = '<p>A design has been shared with you. To view the design go to www.unitingDesigners.com/designs/' + design._id + '.</p> <p>Do not reply to this email</p>';
             transporter.sendMail(mailOptions, function(error, response) {
                 if(error) {
                     console.log(error);

@@ -66,6 +66,96 @@ header {
 .controls {
     /*border:2px solid black; */
 }
+.bold {
+    font-weight: bold;
+    font-size: 18px;
+}
+.homeContainer {
+    width: 100%;
+    height: 860px;
+    border: 1px solid #225378;
+    padding: 15px;
+    box-sizing: border-box;
+    background-color: #1695A3; 
+}
+.topTitle {
+    text-align: center;
+    font-size: 36px;
+    margin: 0px;
+    margin-bottom: 5px;
+}
+.introDiv {
+    width: 600px;
+    border: 2px solid #225378;
+    box-shadow: 0px 4px 3px black;
+    margin: 0 auto;
+    padding: 5px;
+    border-radius: 5px;
+    box-sizing: border-box;
+    background-color: #ACF0F2;
+    text-align: center;
+}
+.topParagraph {
+    margin: 0px;
+    width: 500px;
+    padding: 5px;
+    font-size: 18px;
+    position: relative;
+    display: inline-block;
+}
+.stepGuide {
+    width: 400px;
+    border: 2px solid #225378;
+    box-shadow: 0px 4px 3px black;
+    padding: 5px;
+    border-radius: 5px;
+    box-sizing: border-box;
+    background-color: #ACF0F2;
+    margin-top: 15px;
+    text-align: center;
+    font-size: 18px;
+    display: inline-block;
+}
+.stepGuideSpan {
+    font-size: 20px;
+    font-weight: bold;
+}
+.topSignUp {
+    font-size: 20px;
+    width: 400px;
+    float: right;
+     border: 2px solid #225378;
+    box-shadow: 0px 4px 3px black;
+    padding: 5px;
+    border-radius: 5px;
+    box-sizing: border-box;
+    background-color: #ACF0F2;
+    margin-top: 15px;
+    text-align: center;
+    display: inline-block;
+}
+.steps {
+    display: inline-block;
+    width: 100%;
+}
+.registerButton {
+  -webkit-border-radius: 28;
+  -moz-border-radius: 28;
+  border-radius: 28px;
+  font-family: Arial;
+  font-size: 24px;
+    font-weight: bold;
+  background: #225378;
+  padding: 10px 20px 10px 20px;
+  text-decoration: none;
+  border: none;
+  position: relative;
+  left: 15px;
+    color:#f3ffe2;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    display: inline-block;
+}
 .designModal {
     display: none; /* Hidden by default */
     position: fixed; /* Stay in place */
@@ -510,6 +600,11 @@ header {
     display: inline;
     width: auto;
 }
+.userJoinedMessage {
+    margin: 0px;
+    display: inline;
+    width: auto; 
+}
 .msgText {
     position: relative;
     margin: 0px;
@@ -553,7 +648,7 @@ header {
 }
 .textOptions {
     position: fixed;
-    top: 150px;
+    top: 200px;
     right: 0px;
     width: 300px;
     height: auto;
@@ -785,5 +880,58 @@ header {
     display: inline-block;
     position: relative;
     top: 20px;
-    
+}
+@keyframes notification {
+    0% {background-color: #225378;}
+    50% {background-color: #1695A3;}
+    100% {background-color: #225378;}
+
+}
+.notification {
+    animation-name: notification;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+}
+.shapeInfoModal {
+    display: none;
+    width: 250px;
+    padding: 15px;
+    border: 2px solid #225378;
+    position: fixed;
+    top: 400px;
+    right: 0px;
+    background-color: #ACf0f2;
+    box-shadow: 1px 3px 3px black;
+}
+.shapeInfoTitle {
+    margin: 0px;
+    margin-bottom: 10px;
+    text-decoration: underline;
+    font-weight: bold;
+    text-align: center;
+    font-size: 22px;
+
+}
+.commentTextArea {
+    position: relative;
+    width: 230px;
+    height: 50px;
+    box-shadow: inset 1px 1px 1px black;
+    padding: 5px;
+    font-size: 14px;
+}
+.commentLabelText {
+    position: relative;
+    padding: 5px;
+    font-size: 14px;
+    width: 230px;
+    margin-bottom: 5px;
+}
+.shapeLabel {
+    font-weight: bold;
+    font-size: 16px;
+}
+.shapeCommentLabel {
+    font-weight: bold;
+    font-size: 16px;
 }

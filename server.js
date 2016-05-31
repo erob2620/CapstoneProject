@@ -26,19 +26,28 @@ namespaces.forEach(function(element, index, array) {
     element.on('connect', function(socket) {
         console.log('someone joined in socket: ' + element.name);
         socket.room = socket.handshake.query.room;
+        var user = socket.handshake.query.name;
+        console.log(socket.handshake.query);
+        console.log(user);
         socket.join(socket.room, function(err) {
             if(err) console.log(err);
             console.log(socket.rooms);
         });
-        socket.broadcast.to(socket.room).emit('updateGroup', 'new user has been added to room');
+        socket.broadcast.to(socket.room).emit('updateGroup', user + ' has joined the design');
         
         socket.on('updateDesign', function(design) {
             socket.broadcast.to(socket.room).emit('designUpdate', design); 
+        });
+        socket.on('deleteShape', function(toRemove) {
+            socket.broadcast.to(socket.room).emit('shapeToRemove', toRemove); 
         });
         socket.on('sendMessage', function(msg) {
             socket.emit('messageRecieved', msg);
             socket.broadcast.to(socket.room).emit('messageRecieved', msg); 
 
+        });
+        socket.on('addShape', function(toAdd) {
+            socket.broadcast.to(socket.room).emit('shapeToAdd', toAdd);
         });
     });
 });

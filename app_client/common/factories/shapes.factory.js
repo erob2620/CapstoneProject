@@ -16,6 +16,9 @@
                 strokeWidth:1,
                 fill:'transparent'
             });
+            rect.shapeInfo = {};
+            rect.label = '';
+            rect.comment = '';
             callback(rect);
         }
         shapeFactory.createEllipse = function(options, callback) {
@@ -30,6 +33,9 @@
                 stroke: 'black',
                 strokeWidth: 1                
             });
+            ellipse.label = '';
+            ellipse.comment = '';
+
             callback(ellipse);
         }
         shapeFactory.createTriangle = function(options, callback) {
@@ -42,6 +48,9 @@
                 stroke: 'black',
                 strokeWidth: 1            
             });
+            triangle.label = '';
+            triangle.comment = '';
+
             callback(triangle);
         }
         shapeFactory.createText = function(options, callback) {
@@ -50,6 +59,9 @@
                 left: options.startPosition.y,
                 fontSize: 18,
             });
+            text.label = '';
+            text.comment = '';
+
             callback(text);
         }
         shapeFactory.createImgShape = function(params, callback) {
@@ -68,6 +80,9 @@
                     transformMatrix: [1,0,0,1,0,0]
                 });
                 console.log(loadedObjects);
+                loadedObjects.label = '';
+                loadedObjects.comment = '';
+
                 callback(loadedObjects);
             },
             function(item, object) {
@@ -86,6 +101,9 @@
                 originX: 'center',
                 originY: 'center'
             });
+            line.label = '';
+            line.comment = '';
+
             callback(line);
         }
         shapeFactory.createPolygon = function(params, callback) {
@@ -97,6 +115,9 @@
                 strokeWidth: 2,
                 fill:'transparent'
             }, false);
+            polygon.label = '';
+            polygon.comment = '';
+
             callback(polygon);
         }
         function regularPolygonPoints(sideCount, radius) {

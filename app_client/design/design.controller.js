@@ -7,6 +7,7 @@
     
     function designCtrl($location, $scope, DrawingService, meanData, authentication, $routeParams) {
         var vm = this;
+        vm.lastTime = new Date().getTime();
         vm.designId = $routeParams.designId;
         vm.currentUser = authentication.currentUser();
         vm.currentEmail = vm.currentUser.email;
@@ -26,7 +27,7 @@
         vm.copiedObjects = new Array();
         vm.state = new Array();
         vm.mods = 0;
-        vm.shapeType = 'line';
+        vm.shapeType = 'pointer';
         vm.drawingMode = true;
         vm.isDown = false;
         vm.startPosition = {};
@@ -34,10 +35,10 @@
         vm.canvas;
         vm.init = function() {
             vm.connectToSocket();
-            console.log('initializing fabric');
             vm.canvas = window._canvas = new fabric.Canvas('c',{renderOnAddRemove: false});
             vm.canvas.selection = false;
             vm.setUpCanvas();
+            vm.canvas.observe('mouse:down', vm.objectSelectedHandler);
             meanData.getDesign(vm.designId)
                 .success(function(data) {
                     vm.setCanvasSize(data.design.size);
@@ -58,25 +59,111 @@
                     console.log(e);
                 });  
         };
+        vm.objectSelectedHandler = function(event) {
+            console.log('in selected handler')
+            var date = new Date();
+            var now  = date.getTime();
+            if(now - vm.lastTime < 400) {
+                console.log('double clicked');
+                vm.doubleClickedHandler(event);
+            } else {
+                console.log(document.getElementById('shapeInfoDiv'));
+                document.getElementById('shapeInfoDiv').style.display = 'none';
+
+            }
+            vm.lastTime = now;
+        };
+        vm.doubleClickedHandler = function(event) {
+            console.log(event.target);
+            var shape = event.target;
+            vm.shapeInfo = {label: shape.label, comment: shape.comment};
+            $scope.$apply();
+            $('.shapeInfoModal').css('display','inline-block');
+            $('#label').bind('change keyup',function() {
+                shape.label = this.value;
+                vm.canvas.renderAll();
+                vm.updateDesign();
+                vm.saveCanvas();
+            });
+            $('#comment').bind('change keyup', function() {
+                shape.comment = this.value;
+                vm.canvas.renderAll();
+                vm.updateDesign();
+                vm.saveCanvas();
+
+            });
+
+        };
         vm.connectToSocket = function(){
-            console.log(location.pathname.toString());
             var pathArray = location.pathname.split('/');
-            socket = io('/' + pathArray[1], {query: 'room=' + pathArray[2]});
+            socket = io('/' + pathArray[1], {query: 'room=' + pathArray[2] + '&name=' + vm.currentName});
             
             socket.on('updateGroup', function(msg) {
                 console.log(msg); 
+                var messages = $('#messages');
+                var date = new Date();
+                var postfix = (date.getHours() >= 12) ? 'pm' : 'am';
+                var hours = date.getHours() - (date.getHours() > 12 ? 12 : 0);
+                var minutes = (date.getMinutes() >= 10) ? date.getMinutes() : '0' + date.getMinutes();
+                var time = hours + ':' + minutes + postfix;
+                messages.append($('<li class="message">').html("<p class='msgTime'>" + time + "</p>" + "<p class='userJoinedMessage'>" + msg + "</p>"));
+                messages.scrollTop(messages[0].scrollHeight);
+                if($('.chatBodyContainer').css('display') == 'none') {
+                    $('.chatHeader').addClass('notification');
+                }
             });
             socket.on('designUpdate', function(design) {
                 if(!vm.viewOnly) {
-                    vm.canvas.loadFromJSON(design.design, vm.canvas.renderAll.bind(vm.canvas));
+                    
+                    fabric.util.enlivenObjects([JSON.parse(design.shape)], function(object) {
+                        vm.canvas.insertAt(object[0],design.index, true);
+                    });
+                    vm.canvas.renderAll();
                     
                 } else {
-                    vm.canvas.loadFromJSON(design.design, vm.canvas.renderAll.bind(vm.canvas), function(o, object) {
-                            object.set('selectable', false);
+                    fabric.util.enlivenObjects([JSON.parse(design.shape)], function(object) {
+                        object.set('selectable', false);
+                        vm.canvas.insertAt(object[0],design.index, true);
                     });
+                    vm.canvas.renderAll();
                 }
                 vm.updateState();
             }); 
+            socket.on('shapeToAdd', function(shape) {
+                if(!vm.viewOnly) {
+                    
+                    fabric.util.enlivenObjects([JSON.parse(shape.shape)], function(object) {
+                        vm.canvas.add(object[0]);
+                    });
+                    vm.canvas.renderAll();
+                    
+                } else {
+                    fabric.util.enlivenObjects([JSON.parse(shape.shape)], function(object) {
+                        object.set('selectable', false);
+                        vm.canvas.insertAt(object[0],shape.index, true);
+                    });
+                    vm.canvas.renderAll();
+                }
+                vm.updateState();
+            });
+            socket.on('shapeToRemove', function(toRemove) {
+                if(!vm.viewOnly) {
+                    
+                    fabric.util.enlivenObjects([JSON.parse(toRemove.shape)], function(object) {
+                        vm.canvas.insertAt(object[0],toRemove.index, true);
+                        vm.canvas.remove(object[0]);
+                    });
+                    vm.canvas.renderAll();
+                    
+                } else {
+                    fabric.util.enlivenObjects([JSON.parse(toRemove.shape)], function(object) {
+                        vm.canvas.insertAt(object[0],toRemove.index, true);
+                        vm.canvas.remove(object[0]);
+                    });
+                    vm.canvas.renderAll();
+                }
+                vm.updateState();
+            });
             socket.on('messageRecieved', function(msg) {
                 var messages = $('#messages');
                 var date = new Date();
@@ -86,6 +173,9 @@
                 var time = hours + ':' + minutes + postfix;
                 messages.append($('<li class="message">').html("<p class='messageName'>" + msg.name + "</p>" + "<p class='msgTime'>" + time + "</p>"  + "<p class='msgText'>" + msg.message + "</p>"));
                 messages.scrollTop(messages[0].scrollHeight);
+                if($('.chatBodyContainer').css('display') == 'none') {
+                    $('.chatHeader').addClass('notification');
+                }
             });
         }
         vm.copy = function() {
@@ -121,7 +211,6 @@
         vm.undo = function() {
             if(vm.mods < vm.state.length) {
                 var index = vm.state.length - 1 - vm.mods - 1;
-                console.log('index = ' + index);
                 if(index > -1) {
                     vm.canvas.clear().renderAll();
                     vm.canvas.loadFromJSON(vm.state[index]);
@@ -132,7 +221,6 @@
             }
         }
         vm.redo = function() {
-            console.log(vm.mods);
             if(vm.mods > 0) {
                 vm.canvas.clear().renderAll();
                 vm.canvas.loadFromJSON(vm.state[vm.state.length - 1 - vm.mods + 1]);
@@ -162,8 +250,8 @@
             switch (event.keyCode) {
                 case 46:
                     if(vm.canvas.getActiveObject()) {
-                        console.log('trying to delete');
                         var shapeToRemove = vm.canvas.getActiveObject();
+                        vm.updateShapeDeletion();
                         vm.canvas.remove(shapeToRemove);
                         vm.canvas.remove(shapeToRemove);
                         vm.canvas.renderAll();
@@ -202,25 +290,48 @@
             }
         });
         document.addEventListener('keyup', function(event) {
+            if(event.target.type == 'text' || event.target.id == 'comment' || event.target.id == 'textValue') return false;
             switch( event.keyCode) {
                 case 16: 
-                    console.log('shift released');
                     vm.keepSquare = false;
                     break;
+                case 86:
+                    if(!event.ctrlKey) vm.changeToPointer();
+                    break;
+                case 84:
+                    vm.changeToText();
+                    break;
+                case 83:
+                    vm.changeToRect();
+                    break;
+                case 80:
+                    vm.changeToPolygon();
+                    break;
+                case 69:
+                    vm.changeToEllipse();
+                    break;
+                case 73:
+                    vm.changeToImgShape();
+                    break;
+                case 76:
+                    vm.changeToLine();
+                    break;
+                case 82:
+                    vm.changeToTriangle();
+                    break;
+                    
             }
         });
         vm.updateState = function() {
-            var canvasJson = vm.canvas.toJSON();
+            var canvasJson = vm.canvas.toJSON(['label','comment']);
             var canvasString = JSON.stringify(canvasJson);
             vm.state.push(canvasString);
 
         }
         vm.saveCanvas = function() {
-            var canvasJson = vm.canvas.toJSON();
-            console.log(canvasJson);
+            var canvasJson = vm.canvas.toJSON(['label','comment']);
             var canvasString = JSON.stringify(canvasJson);
             vm.currentEmail = authentication.currentUser().email;
-            console.log(vm.currentEmail);
             vm.design = {
                 id: vm.designId,
                 owner: vm.currentEmail,
@@ -228,16 +339,24 @@
             }
             meanData.saveDesign(vm.design)
                 .success(function(data) {
-                    console.log(data);
-                    console.log('about to call socket');
-                    socket.emit('updateDesign', vm.design);
                 })
                 .error(function(e) {
                     console.log(e);
                 });
         }
+        vm.updateDesign = function() {
+            var toUpdate = {index: vm.canvas.getObjects().indexOf(vm.canvas.getActiveObject()), shape: JSON.stringify(vm.canvas.getActiveObject().toJSON(['label','comment']))};
+            socket.emit('updateDesign', toUpdate);
+        };
+        vm.updateShapeDeletion = function() {
+            var toDelete = {index: vm.canvas.getObjects().indexOf(vm.canvas.getActiveObject()), shape: JSON.stringify(vm.canvas.getActiveObject())};
+            socket.emit('deleteShape', toDelete);
+        }
+        vm.shapeAdded = function() {
+            var toAdd = {shape: JSON.stringify(vm.canvas.getActiveObject().toJSON(['label','comment']))};
+            socket.emit('addShape', toAdd);
+        };
         vm.setCanvasSize = function(size) {
-            console.log(size);
             vm.canvas.setWidth(size.width);
             vm.canvas.setHeight(size.height);
 
@@ -247,21 +366,21 @@
             vm.shapeType = 'rect';
             $('#rect').addClass('selectedButton'); 
             vm.canvas.defaultCursor = 'crosshair';
+            vm.canvas.discardActiveObject().renderAll();
         };
         vm.changeToEllipse = function() {
             $('#' + vm.shapeType).removeClass('selectedButton');
             vm.shapeType = 'ellipse';
             $('#ellipse').addClass('selectedButton');
             vm.canvas.defaultCursor = 'crosshair';
-
-
+            vm.canvas.discardActiveObject().renderAll();
         };
         vm.changeToTriangle = function() {
             $('#' + vm.shapeType).removeClass('selectedButton');
             vm.shapeType = 'triangle';
             $('#triangle').addClass('selectedButton');
             vm.canvas.defaultCursor = 'crosshair';
-
+            vm.canvas.discardActiveObject().renderAll();
         };
         
         vm.changeToText = function() {
@@ -269,56 +388,48 @@
             vm.shapeType = 'i-text';
             $('#i-text').addClass('selectedButton');
             vm.canvas.defaultCursor = 'crosshair';
-
-
+            vm.canvas.discardActiveObject().renderAll();
         };
         vm.changeToImgShape = function() {
             $('#' + vm.shapeType).removeClass('selectedButton');
             vm.shapeType = 'imgShape';
             $('#imgShape').addClass('selectedButton');
             vm.canvas.defaultCursor = 'crosshair';
-
-
+            vm.canvas.discardActiveObject().renderAll();
         };
         vm.changeToPolygon = function() {
             $('#' + vm.shapeType).removeClass('selectedButton');
             vm.shapeType = 'polygon';
             $('#polygon').addClass('selectedButton');
             vm.canvas.defaultCursor = 'crosshair';
-
-
+            vm.canvas.discardActiveObject().renderAll();
         };
         vm.changeToPointer = function() {
             $('#' + vm.shapeType).removeClass('selectedButton');
             vm.shapeType = 'pointer';
             $('#pointer').addClass('selectedButton');
             vm.canvas.defaultCursor = 'default';
-
-
         };
         vm.changeToLine = function() {
             $('#' + vm.shapeType).removeClass('selectedButton');
             vm.shapeType = 'line';
             $('#line').addClass('selectedButton');
             vm.canvas.defaultCursor = 'crosshair';
-
-
+            vm.canvas.discardActiveObject().renderAll();
         };
         $scope.toggleChat = function() {
-            console.log('toggle chat called');
             if($('.chatBodyContainer').css('display') == 'inline-block') {
                 $('.chatBodyContainer').css('display','none');  
             } else {
                 $('.chatBodyContainer').css('display' ,'inline-block');
+                $('.chatHeader').removeClass('notification');
             }
         }
         vm.setUpCanvas = function() {
             document.getElementById('exportLink').addEventListener('click', function(e) {
-                console.log('called');
                 if(!fabric.Canvas.supports('toDataURL')) {
                     alert('This browlser doesn\'t support exporting')
                 } else {
-                    console.log('trying to export');
                     this.href = vm.canvas.toDataURL({
                         format: 'png',
                         quality: 0.8
@@ -397,7 +508,6 @@
                         vm.shape.set({points: regularPolygonPoints(6, radius)});
                         vm.shape.setWidth(deltaX);
                         vm.shape.setHeight(deltaY);
-                        console.log(vm.shape);
                         vm.shape.setCoords();
                         break;
                     case 'i-text':
@@ -415,13 +525,11 @@
                             item.setCoords();
                         });
                         var boundingRect = vm.shape.getBoundingRect();
-                        console.log(vm.shape.oCoords);
                         vm.shape.set('left', vm.startPosition.x);
                         vm.shape.set('top', vm.startPosition.y);
                         vm.shape.setObjectsCoords();
                         break;
                     case 'line':
-                        console.log(vm.shape);
                         vm.shape.set({x2: event.e.offsetX, y2: event.e.offsetY});
                         break;
                 }
@@ -430,10 +538,9 @@
             vm.canvas.on('mouse:up', function(event) {
                 vm.isDown = false;
 
-                if(vm.drawingMode) {
+                if(vm.drawingMode && vm.shapeType != 'pointer') {
                     if(vm.shapeType === 'rect') {
                         if(event.e.offsetY - vm.startPosition.y < 0) {
-                            console.log('change spinner');
                             vm.shape.top = event.e.offsetY;
                             vm.shape.setHeight(vm.shape.getHeight() * -1);
                             vm.shape.setCoords();
@@ -450,7 +557,6 @@
                         vm.shape.setHeight(vm.shape._objects[0].height);
                         vm.shape.setTransformMatrix([1,0,0,1,-30,-20]);
                         vm.shape.setCoords();
-                        console.log(vm.shape);
                         vm.canvas.renderAll();
                     } else if(vm.shapeType === 'line') {
 //                        vm.shape.hasBorders = false;
@@ -458,23 +564,23 @@
 //                        vm.shape.lockUniScaling = false;
                     }
                     vm.canvas.setActiveObject(vm.shape);
-                    console.log('calling save');
                     vm.updateState();
+                    vm.shapeAdded();
                     vm.saveCanvas();
                 } 
             });
-            vm.canvas.on('before:selection:cleared', function() {
+            vm.canvas.on('selection:cleared', function() {
                 $('#textOptions').css('display', 'none');
+                console.log(document.getElementById('shapeInfoDiv'));
+                document.getElementById('shapeInfoDiv').style.display = 'none';
             });
             vm.canvas.on('object:selected', function() {
                 if(!vm.viewOnly) {
                     vm.drawingMode = false;
                     var shape = vm.canvas.getActiveObject();
                     $('#' + vm.shapeType).removeClass('selectedButton');
-                    vm.shapeType = shape.type;
                     $('#' + vm.shapeType).addClass('selectedButton');
-                    console.log(shape);
-                    if(vm.shapeType === 'i-text') {
+                    if(shape.type === 'i-text') {
                         vm.textOptions.text = shape.text;
                         vm.textOptions.fontFamily = shape.fontFamily;
                         vm.textOptions.fontSize = shape.fontSize;
@@ -485,45 +591,60 @@
 
                         $('#textOptions').css('display', 'inline-block');
                         $('#textValue').bind('change keyup', function() {
-                            console.log(this.value);
                             shape.text = this.value;
                             vm.canvas.renderAll();
+                            vm.updateDesign();
+                            vm.updateState();
                             vm.saveCanvas();
                         });
                         $('#font-family').change(function() {
-                            console.log(this.value);
                             shape.fontFamily = this.value;
                             vm.canvas.renderAll();
+                            vm.updateDesign();
+                            vm.updateState();
                             vm.saveCanvas();
                         });
                         $('#font-size').change(function() {
                             shape.fontSize = this.value;
                             vm.canvas.renderAll();
+                            vm.updateDesign();
+                            vm.updateState();
                             vm.saveCanvas();
                         });
                         $('#font-align').change(function() {
                             shape.fontAlign = this.value;
                             vm.canvas.renderAll();
+                            vm.updateDesign();
+                            vm.updateState();
                             vm.saveCanvas();
                         });
                         $('#toggleBold').on('click', function() {
                              shape.fontWeight = (shape.fontWeight === 'bold') ? 'normal' : 'bold';
                             vm.canvas.renderAll();
+                            vm.updateDesign();
+                            vm.updateState();
                             vm.saveCanvas();
                         });
                         $('#toggleItalic').on('click', function() {
                             shape.fontStyle = (shape.fontStyle === 'italic') ? 'normal' : 'italic';
                             vm.canvas.renderAll();
+                            vm.updateDesign();
+                            vm.updateState();
                             vm.saveCanvas();
 
                         });
                         $('#toggleUnderline').on('click', function() {
                             shape.textDecoration = (shape.textDecoration === 'underline') ? '' : 'underline';
                             vm.canvas.renderAll();
+                            vm.updateDesign();
+                            vm.updateState();
+                            vm.saveCanvas();
                         });
                         $('#toggleLinethrough').on('click', function() {
                             shape.textDecoration = (shape.textDecoration === 'line-through') ? '' : 'line-through';
                             vm.canvas.renderAll();
+                            vm.updateDesign();
+                            vm.updateState();
                             vm.saveCanvas();
                         });
                     } else {
@@ -531,14 +652,30 @@
                     }
                 }
             });
+            vm.canvas.on('mouse:over', function(e) {
+                if(e.target && vm.shapeType != 'pointer') {
+                    console.log('false selection');
+                    e.target.set('selectable',false);
+                } else if(e.target && vm.shapeType == 'pointer') {
+                    console.log('make selectable again');
+                    e.target.set('selectable', true);
+                }
+                
+            });
             vm.canvas.on('object:moving', function() {
                 vm.saveCanvas(); 
+                
+                vm.updateDesign();
             });
             vm.canvas.on('object:scaling', function() {
                 vm.saveCanvas(); 
+                vm.updateDesign();
+
             });
             vm.canvas.on('object:rotating', function() {
                 vm.saveCanvas(); 
+                vm.updateDesign();
+
             });
             vm.canvas.on('selection:cleared', function() {
                 vm.drawingMode = true;
@@ -547,7 +684,7 @@
             vm.canvas.observe('object:modified', function(e) {
                 e.target.resizeToScale();
                 vm.updateState();
-                console.log(vm.state);
+                vm.updateDesign();
                 vm.saveCanvas();
                 
             });
@@ -562,7 +699,6 @@
                 if(!vm.viewOnly) {
                 meanData.shareDesign(vm.shareInfo)
                     .success(function(data){
-                        console.log(data);
                         vm.closeModal();
                         alert('Project shared');
                     })
@@ -573,7 +709,6 @@
             };
 
             fabric.Object.prototype.resizeToScale = function() {
-                console.log(this);
                 switch(this.type) {
                     case 'rect':
                         this.width *= this.scaleX;
