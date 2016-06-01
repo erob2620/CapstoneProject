@@ -124,7 +124,7 @@ header {
     font-size: 20px;
     width: 400px;
     float: right;
-     border: 2px solid #225378;
+    border: 2px solid #225378;
     box-shadow: 0px 4px 3px black;
     padding: 5px;
     border-radius: 5px;
@@ -134,9 +134,14 @@ header {
     text-align: center;
     display: inline-block;
 }
+.stepContainer {
+    width: 100%;
+    text-align: center;
+}
 .steps {
     display: inline-block;
-    width: 100%;
+    min-width: 900px;
+    max-width: 1000px;
 }
 .registerButton {
   -webkit-border-radius: 28;
