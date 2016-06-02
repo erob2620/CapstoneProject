@@ -7,7 +7,7 @@
     <input type="button" id="rect" ng-click="vm.changeToRect()" class='rectButton' title='Rectangle Tool (s)'/>
     <input type="button" id="ellipse" ng-click="vm.changeToEllipse()" class='elipseButton' title='Ellipse Tool (e)'/>
     <input type="button" id="triangle" ng-click="vm.changeToTriangle()" class='triangleButton' title='Triangle Tool (r)'/>
-    <input type="button" id="imgShape" ng-click="vm.changeToImgShape()" class='imgButton' class='imgShapeButton' title='Image Tool (i)'/>
+    <input type="button" id="image" ng-click="vm.changeToImgShape()" class='imgButton' class='imgShapeButton' title='Image Tool (i)'/>
     <input type="button" id="polygon" ng-click="vm.changeToPolygon()" class='polygonButton' title='Hexagon Tool (p)'/>
     <input type="button" id="i-text" ng-click="vm.changeToText()" class='textButton' title='Text Tool (t)'/>
     <input type="button" id="line" ng-click="vm.changeToLine()" class='lineButton' title='Line Tool (l)'/>
@@ -88,11 +88,12 @@
 </div>
 <div class="shapeInfoModal" id="shapeInfoDiv">
     <h3 class="shapeInfoTitle">Shape Information</h3>
-    <form>
+    <form ng-submit='vm.saveShapeInfo()'>
         <label class='shapeLabel' for="label">Label:</label>
-        <input class='commentLabelText' id="label" type='text' ng-model='vm.shapeInfo.label'/>
+        <input class='commentLabelText' id="label" type='text'/>
         <label class='shapeCommentLabel' for="comment">Comment:</label>
-        <textarea class='commentTextArea' id="comment" ng-model='vm.shapeInfo.comment'/>
+        <textarea class='commentTextArea' id="comment"/>
+        <input type="submit" value='save'>
     </form>
 </div>
 <div id='chatContainer' class='chat-container'>

@@ -35,7 +35,7 @@
         vm.canvas;
         vm.init = function() {
             vm.connectToSocket();
-            vm.canvas = window._canvas = new fabric.Canvas('c',{renderOnAddRemove: false});
+            vm.canvas = new fabric.Canvas('c',{renderOnAddRemove: false});
             vm.canvas.selection = false;
             vm.setUpCanvas();
             vm.canvas.observe('mouse:down', vm.objectSelectedHandler);
@@ -74,25 +74,19 @@
             vm.lastTime = now;
         };
         vm.doubleClickedHandler = function(event) {
-            console.log(event.target);
-            var shape = event.target;
-            vm.shapeInfo = {label: shape.label, comment: shape.comment};
-            $scope.$apply();
+            var shape = vm.canvas.getActiveObject();
+            console.log(shape);
+            $('#label').val(shape.label);
+            $('#comment').val(shape.comment);
             $('.shapeInfoModal').css('display','inline-block');
-            $('#label').bind('change keyup',function() {
-                shape.label = this.value;
-                vm.canvas.renderAll();
-                vm.updateDesign();
-                vm.saveCanvas();
-            });
-            $('#comment').bind('change keyup', function() {
-                shape.comment = this.value;
-                vm.canvas.renderAll();
-                vm.updateDesign();
-                vm.saveCanvas();
-
-            });
-
+        };
+        vm.saveShapeInfo = function() {
+            var shape = vm.canvas.getActiveObject();
+            console.log(shape);
+            shape.label = $('#label').val();
+            shape.comment = $('#comment').val();
+            vm.updateDesign();
+            vm.saveCanvas();
         };
         vm.connectToSocket = function(){
             var pathArray = location.pathname.split('/');
@@ -114,11 +108,13 @@
             });
             socket.on('designUpdate', function(design) {
                 if(!vm.viewOnly) {
-                    
+                    console.log(design);
                     fabric.util.enlivenObjects([JSON.parse(design.shape)], function(object) {
                         vm.canvas.insertAt(object[0],design.index, true);
+                        vm.canvas.renderAll();
+
                     });
-                    vm.canvas.renderAll();
+                    
                     
                 } else {
                     fabric.util.enlivenObjects([JSON.parse(design.shape)], function(object) {
@@ -134,8 +130,8 @@
                     
                     fabric.util.enlivenObjects([JSON.parse(shape.shape)], function(object) {
                         vm.canvas.add(object[0]);
+                        vm.canvas.renderAll();
                     });
-                    vm.canvas.renderAll();
                     
                 } else {
                     fabric.util.enlivenObjects([JSON.parse(shape.shape)], function(object) {
@@ -152,8 +148,9 @@
                     fabric.util.enlivenObjects([JSON.parse(toRemove.shape)], function(object) {
                         vm.canvas.insertAt(object[0],toRemove.index, true);
                         vm.canvas.remove(object[0]);
+                        vm.canvas.renderAll();
+
                     });
-                    vm.canvas.renderAll();
                     
                 } else {
                     fabric.util.enlivenObjects([JSON.parse(toRemove.shape)], function(object) {
@@ -230,14 +227,16 @@
             }
         }
         vm.sendMessage = function() {
-            vm.message = {name: vm.currentName, message: $('#m').val()};
-            $('#m').val('');
-            socket.emit('sendMessage', vm.message);
+            if($('#m').val() != '') {
+                vm.message = {name: vm.currentName, message: $('#m').val()};
+                $('#m').val('');
+                socket.emit('sendMessage', vm.message);
+            }
         }
         function regularPolygonPoints(sideCount, radius) {
             var sweep = Math.PI*2/sideCount;
-            var cx = radius + vm.shape.get('left');
-            var cy = radius + vm.shape.get('top');
+            var cx = radius; 
+            var cy = radius;
             var points = [];
             for(var i = 0; i < sideCount; i++) {
                 var x = cx+radius*Math.cos(i*sweep);
@@ -296,6 +295,7 @@
                     vm.keepSquare = false;
                     break;
                 case 86:
+                case 27:
                     if(!event.ctrlKey) vm.changeToPointer();
                     break;
                 case 84:
@@ -323,13 +323,13 @@
             }
         });
         vm.updateState = function() {
-            var canvasJson = vm.canvas.toJSON(['label','comment']);
+            var canvasJson = vm.canvas.toDatalessJSON(['label','comment']);
             var canvasString = JSON.stringify(canvasJson);
             vm.state.push(canvasString);
 
         }
         vm.saveCanvas = function() {
-            var canvasJson = vm.canvas.toJSON(['label','comment']);
+            var canvasJson = vm.canvas.toDatalessJSON(['label','comment']);
             var canvasString = JSON.stringify(canvasJson);
             vm.currentEmail = authentication.currentUser().email;
             vm.design = {
@@ -345,15 +345,17 @@
                 });
         }
         vm.updateDesign = function() {
-            var toUpdate = {index: vm.canvas.getObjects().indexOf(vm.canvas.getActiveObject()), shape: JSON.stringify(vm.canvas.getActiveObject().toJSON(['label','comment']))};
+            var toUpdate = {index: vm.canvas.getObjects().indexOf(vm.canvas.getActiveObject()), shape: JSON.stringify(vm.canvas.getActiveObject().toDatalessObject(['label','comment']))};
+            console.log(toUpdate);
             socket.emit('updateDesign', toUpdate);
         };
         vm.updateShapeDeletion = function() {
-            var toDelete = {index: vm.canvas.getObjects().indexOf(vm.canvas.getActiveObject()), shape: JSON.stringify(vm.canvas.getActiveObject())};
+            var toDelete = {index: vm.canvas.getObjects().indexOf(vm.canvas.getActiveObject()), shape: JSON.stringify(vm.canvas.getActiveObject().toDatalessObject())};
             socket.emit('deleteShape', toDelete);
         }
         vm.shapeAdded = function() {
-            var toAdd = {shape: JSON.stringify(vm.canvas.getActiveObject().toJSON(['label','comment']))};
+            var toAdd = {shape: JSON.stringify(vm.canvas.getActiveObject().toDatalessObject(['label','comment']))};
+            console.log(toAdd);
             socket.emit('addShape', toAdd);
         };
         vm.setCanvasSize = function(size) {
@@ -392,8 +394,8 @@
         };
         vm.changeToImgShape = function() {
             $('#' + vm.shapeType).removeClass('selectedButton');
-            vm.shapeType = 'imgShape';
-            $('#imgShape').addClass('selectedButton');
+            vm.shapeType = 'image';
+            $('#image').addClass('selectedButton');
             vm.canvas.defaultCursor = 'crosshair';
             vm.canvas.discardActiveObject().renderAll();
         };
@@ -504,30 +506,34 @@
                     case 'polygon':
                         deltaX = event.e.offsetX - vm.startPosition.x;
                         deltaY = event.e.offsetY - vm.startPosition.y;
-                        var radius = deltaX / 2;
+                        var radius = (deltaX / 2) - 4;
                         vm.shape.set({points: regularPolygonPoints(6, radius)});
                         vm.shape.setWidth(deltaX);
                         vm.shape.setHeight(deltaY);
+                        vm.shape.set('left', vm.startPosition.x);
+                        vm.shape.set('top', vm.startPosition.y);
                         vm.shape.setCoords();
                         break;
                     case 'i-text':
                         deltaX = event.e.offsetX - vm.startPosition.x;
                         deltaY = event.e.offsetY - vm.startPosition.y;
                         vm.shape.setWidth(deltaX);
-                        vm.shape.setCoords();
-                        break;
-                    case 'imgShape':
-                        deltaX = event.e.offsetX - vm.startPosition.x;
-                        deltaY = event.e.offsetY - vm.startPosition.y;
-                        vm.shape._objects.forEach(function(item) {
-                            item.setWidth(deltaX);
-                            item.setHeight(deltaY);
-                            item.setCoords();
-                        });
-                        var boundingRect = vm.shape.getBoundingRect();
                         vm.shape.set('left', vm.startPosition.x);
                         vm.shape.set('top', vm.startPosition.y);
-                        vm.shape.setObjectsCoords();
+                        vm.shape.setCoords();
+                        break;
+                    case 'image':
+                        deltaX = event.e.offsetX - vm.startPosition.x;
+                        deltaY = event.e.offsetY - vm.startPosition.y;
+                        
+                        vm.shape.setWidth(deltaX);
+                        vm.shape.setHeight(deltaY);
+                        vm.shape.setCoords();
+                        
+                        //var boundingRect = vm.shape.getBoundingRect();
+//                        vm.shape.set('left', vm.startPosition.x);
+//                        vm.shape.set('top', vm.startPosition.y);
+//                        vm.shape.setObjectsCoords();
                         break;
                     case 'line':
                         vm.shape.set({x2: event.e.offsetX, y2: event.e.offsetY});
@@ -552,12 +558,11 @@
                             vm.shape.rotate(180);
                             vm.shape.setCoords();
                         }
-                    } else if(vm.shapeType === 'imgShape') {
-                        vm.shape.setWidth(vm.shape._objects[0].width);
-                        vm.shape.setHeight(vm.shape._objects[0].height);
-                        vm.shape.setTransformMatrix([1,0,0,1,-30,-20]);
-                        vm.shape.setCoords();
-                        vm.canvas.renderAll();
+                    } else if(vm.shapeType === 'image') {
+//                        vm.shape.setWidth(vm.shape._objects[0].width);
+//                        vm.shape.setHeight(vm.shape._objects[0].height);
+//                        vm.shape.setCoords();
+//                        vm.canvas.renderAll();
                     } else if(vm.shapeType === 'line') {
 //                        vm.shape.hasBorders = false;
 //                        vm.shape.setControlsVisibility({bl:false, mb:false, ml:false, mr:false, mt:false, tr:false, mtr:false});
@@ -566,8 +571,10 @@
                     vm.canvas.setActiveObject(vm.shape);
                     vm.updateState();
                     vm.shapeAdded();
+                    console.log('calling save canvas from mouse up');
                     vm.saveCanvas();
                 } 
+                vm.drawingMode = false;
             });
             vm.canvas.on('selection:cleared', function() {
                 $('#textOptions').css('display', 'none');
@@ -591,42 +598,42 @@
 
                         $('#textOptions').css('display', 'inline-block');
                         $('#textValue').bind('change keyup', function() {
-                            shape.text = this.value;
+                            vm.canvas.getActiveObject().text = this.value;
                             vm.canvas.renderAll();
                             vm.updateDesign();
                             vm.updateState();
                             vm.saveCanvas();
                         });
                         $('#font-family').change(function() {
-                            shape.fontFamily = this.value;
+                            vm.canvas.getActiveObject().fontFamily = this.value;
                             vm.canvas.renderAll();
                             vm.updateDesign();
                             vm.updateState();
                             vm.saveCanvas();
                         });
                         $('#font-size').change(function() {
-                            shape.fontSize = this.value;
+                           vm.canvas.getActiveObject().fontSize = this.value;
                             vm.canvas.renderAll();
                             vm.updateDesign();
                             vm.updateState();
                             vm.saveCanvas();
                         });
                         $('#font-align').change(function() {
-                            shape.fontAlign = this.value;
+                            vm.canvas.getActiveObject().fontAlign = this.value;
                             vm.canvas.renderAll();
                             vm.updateDesign();
                             vm.updateState();
                             vm.saveCanvas();
                         });
                         $('#toggleBold').on('click', function() {
-                             shape.fontWeight = (shape.fontWeight === 'bold') ? 'normal' : 'bold';
+                             vm.canvas.getActiveObject().fontWeight = (vm.canvas.getActiveObject().fontWeight === 'bold') ? 'normal' : 'bold';
                             vm.canvas.renderAll();
                             vm.updateDesign();
                             vm.updateState();
                             vm.saveCanvas();
                         });
                         $('#toggleItalic').on('click', function() {
-                            shape.fontStyle = (shape.fontStyle === 'italic') ? 'normal' : 'italic';
+                            vm.canvas.getActiveObject().fontStyle = (vm.canvas.getActiveObject().fontStyle === 'italic') ? 'normal' : 'italic';
                             vm.canvas.renderAll();
                             vm.updateDesign();
                             vm.updateState();
@@ -634,14 +641,14 @@
 
                         });
                         $('#toggleUnderline').on('click', function() {
-                            shape.textDecoration = (shape.textDecoration === 'underline') ? '' : 'underline';
+                            vm.canvas.getActiveObject().textDecoration = (vm.canvas.getActiveObject().textDecoration === 'underline') ? '' : 'underline';
                             vm.canvas.renderAll();
                             vm.updateDesign();
                             vm.updateState();
                             vm.saveCanvas();
                         });
                         $('#toggleLinethrough').on('click', function() {
-                            shape.textDecoration = (shape.textDecoration === 'line-through') ? '' : 'line-through';
+                            vm.canvas.getActiveObject().textDecoration = (vm.canvas.getActiveObject().textDecoration === 'line-through') ? '' : 'line-through';
                             vm.canvas.renderAll();
                             vm.updateDesign();
                             vm.updateState();
@@ -664,17 +671,16 @@
             });
             vm.canvas.on('object:moving', function() {
                 vm.saveCanvas(); 
-                
                 vm.updateDesign();
             });
             vm.canvas.on('object:scaling', function() {
-                vm.saveCanvas(); 
-                vm.updateDesign();
+//                vm.saveCanvas(); 
+//                vm.updateDesign();
 
             });
             vm.canvas.on('object:rotating', function() {
-                vm.saveCanvas(); 
-                vm.updateDesign();
+//                vm.saveCanvas(); 
+//                vm.updateDesign();
 
             });
             vm.canvas.on('selection:cleared', function() {
@@ -682,6 +688,7 @@
             });
     
             vm.canvas.observe('object:modified', function(e) {
+                console.log('object modified');
                 e.target.resizeToScale();
                 vm.updateState();
                 vm.updateDesign();
@@ -743,7 +750,7 @@
 //                        this.width = this.getBoundingBox().width;
 //                        this.height = this.getBoundingBox().height;
                         break;
-                    case 'imgShape':
+                    case 'image':
                         this.width *= this.scaleX;
                         this.height *= this.scaleY;
                         this.scaleX = 1;

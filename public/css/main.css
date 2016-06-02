@@ -583,7 +583,6 @@ header {
     width: 250px;
     max-height: 200px;
     overflow-y: auto;
-    overflow-x: hidden;
 }
 .message {
     color: black;
@@ -591,7 +590,7 @@ header {
     list-style-type: none;
     float: left;
     background-color: #f3fff2;
-    width: 230px;
+    width: 100%;
     height: auto;
     padding-left: 10px;
     padding-top: 10px;
@@ -615,6 +614,8 @@ header {
     margin: 0px;
     padding: 0px;
     padding-top: 5px;
+    flex-wrap: wrap;
+    padding-right: 5px;
     
 }
 .msgTime {

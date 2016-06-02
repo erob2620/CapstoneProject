@@ -16,7 +16,7 @@
                 parentClass = ShapeService.createEllipse;
             } else if(options.shapeType === 'triangle') {
                 parentClass = ShapeService.createTriangle;
-            } else if(options.shapeType === 'imgShape') {
+            } else if(options.shapeType === 'image') {
                 parentClass = ShapeService.createImgShape;
             } else if(options.shapeType === 'i-text') {
                 parentClass = ShapeService.createText;

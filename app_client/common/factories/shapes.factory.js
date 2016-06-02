@@ -54,10 +54,10 @@
             callback(triangle);
         }
         shapeFactory.createText = function(options, callback) {
-            var text = new fabric.IText("Click to change text", {
-                top: options.startPosition.x,
-                left: options.startPosition.y,
-                fontSize: 18,
+            var text = new fabric.IText("Text", {
+                top: options.startPosition.y,
+                left: options.startPosition.x,
+                fontSize: 18
             });
             text.label = '';
             text.comment = '';
@@ -65,31 +65,45 @@
             callback(text);
         }
         shapeFactory.createImgShape = function(params, callback) {
-            var group = [];
-            fabric.loadSVGFromURL('svgs/imageShape.svg', function(objects, options) {
-                var loadedObjects = new fabric.Group(group);
-                loadedObjects.set({
-                    left: params.startPosition.x,
-                    top: params.startPosition.y,
-                    fill: 'transparent',
-                    stroke: 'black',
-                    originX: 'left',
-                    originY: 'top',
-                    strokeWidth: 1,
-                    type: 'imgShape',
-                    transformMatrix: [1,0,0,1,0,0]
-                });
-                console.log(loadedObjects);
-                loadedObjects.label = '';
-                loadedObjects.comment = '';
-
-                callback(loadedObjects);
-            },
-            function(item, object) {
-                object.set('id', item.getAttribute('id'));
-                group.push(object);
-            });
-
+//            var group = [];
+//            fabric.loadSVGFromURL('svgs/imageShape.svg', function(objects, options) {
+//                var loadedObjects = new fabric.Group(group);
+//                loadedObjects.set({
+//                    left: params.startPosition.x,
+//                    top: params.startPosition.y,
+//                    fill: 'transparent',
+//                    stroke: 'black',
+//                    originX: 'left',
+//                    originY: 'top',
+//                    strokeWidth: 1,
+//                    type: 'imgShape',
+//                });
+//                console.log(loadedObjects);
+//                loadedObjects.label = '';
+//                loadedObjects.comment = '';
+//
+//                callback(loadedObjects);
+//            },
+//            function(item, object) {
+//                object.set('id', item.getAttribute('id'));
+//                group.push(object);
+//            });
+            var oSVG;
+            fabric.Image.fromURL('svgs/imageShape.svg', function(object) {
+                oSVG = object.set({left: params.startPosition.x,
+                                  top: params.startPosition.y,
+                                  fill: 'transparent',
+                                  stroke: 'black',
+                                  originX: 'left',
+                                  originY: 'top',
+                                  strokeWidth: 1,
+                                   width: 0,
+                                   height: 0
+                                  });
+                oSVG.label = '';
+                oSVG.comment = '';
+                callback(oSVG);
+            })
         }
         shapeFactory.createLine = function(params, callback) {
             var points = [params.startPosition.x,params.startPosition.y,params.startPosition.x, params.startPosition.y];
