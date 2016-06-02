@@ -200,6 +200,7 @@
             }
             else if(vm.copiedObject){
                 vm.canvas.add(vm.copiedObject);
+                vm.updateDesign();
             }
             vm.canvas.renderAll(); 
             vm.updateState();
