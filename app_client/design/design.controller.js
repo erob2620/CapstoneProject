@@ -434,9 +434,10 @@
                     alert('This browlser doesn\'t support exporting')
                 } else {
                     this.href = vm.canvas.toDataURL({
-                        format: 'jpeg'
+                        format: 'png',
+                        quality: 0.8
                     });
-                    this.download = vm.designName.replaceAll(' ', '_') + '.jpg';
+                    this.download = vm.designName.replaceAll(' ', '_') + '.png';
                 }
             });
             vm.canvas.on('mouse:down', function(event) {
