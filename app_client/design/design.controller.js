@@ -433,10 +433,7 @@
                 if(!fabric.Canvas.supports('toDataURL')) {
                     alert('This browlser doesn\'t support exporting')
                 } else {
-                    this.href = vm.canvas.toDataURL({
-                        format: 'png',
-                        quality: 0.8
-                    });
+                    this.href = vm.canvas.toDataURL();
                     this.download = vm.designName.replaceAll(' ', '_') + '.png';
                 }
             });
